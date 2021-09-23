@@ -57,7 +57,7 @@ class EngineTypes
     // Layouts
     public static inline var CONTAINER : String = "Container";
     public static inline var FIT_CONTAINER : String = "FitContainer";
-    //public static const GRID_CONTAINER:String = "GridContainer";
+    public static inline var GRID_CONTAINER : String = "GridContainer";
     public static inline var HORIZONTAL_CONTAINER : String = "HorizontalContainer";
     public static inline var VERTICAL_CONTAINER : String = "VerticalContainer";
     

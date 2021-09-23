@@ -1,0 +1,11 @@
+{
+	"name": "chaos-engine",
+	"url": "https://github.com/StarbuckZero/CHAOS_ENGINE",
+    "license": "MIT",
+	"tags": [ "chaos", "openfl", "js", "ios", "android", "web", "cpp" ],
+	"description": "Engine that run commands based on JSON data",
+	"version": "1.0.0",
+	"releasenote": "First release of the engine to the public",
+	"contributors": [ "starbuckzero"],
+	"dependencies": {"chaos-framework":""}
+}

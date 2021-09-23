@@ -72,11 +72,11 @@ class CoreCommandPlugin
         {
             var subElement : DisplayObject = containerArea.getChildAt(i);
             
-            if (Std.is(subElement, IBaseUI))
+            if (Std.isOfType(subElement, IBaseUI))
                 CommandDispatch.removeAllEvents(cast(subElement, IBaseUI));
             
-            if (Std.is(subElement, IBaseContainer))
-                removeContainerEvents(try cast(subElement, IBaseContainer) catch(e:Dynamic) null);
+            if (Std.isOfType(subElement, IBaseContainer))
+                removeContainerEvents(cast(subElement, IBaseContainer));
         }
     }
     
@@ -102,7 +102,7 @@ class CoreCommandPlugin
     
     public static function setDataProvider(elementName : String, append : Bool = false, items : Array<Dynamic> = null) : DisplayObject
     {
-        return cast(CommandCentral.runCommand(EngineTypes.DATA_UPDATE, {name : elementName,append : append,items : ((null != items)) ? items : []}), DisplayObject);
+        return cast(CommandCentral.runCommand(EngineTypes.DATA_UPDATE, {name : elementName,append : append, items : ((null != items)) ? items : []}), DisplayObject);
     }
 }
 

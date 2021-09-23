@@ -1,6 +1,5 @@
 package com.chaos.engine.plugin;
 
-//import com.chaos.drawing.Draw;
 import com.chaos.engine.CommandDispatch;
 import com.chaos.engine.EngineTypes;
 import com.chaos.engine.Global;
@@ -52,9 +51,8 @@ class CoreFrameworkPlugin
     */
     
     public static function initialize() : Void
-    // Core Engine Functions
     {
-        
+        // Core Engine Functions
         CommandCentral.addCommand(EngineTypes.LAYER, createLayer);
         CommandCentral.addCommand(EngineTypes.SCREEN, createScreen);
         CommandCentral.addCommand(EngineTypes.ELEMENT, createElement);
@@ -72,7 +70,7 @@ class CoreFrameworkPlugin
         // Layout
         CommandCentral.addCommand(EngineTypes.CONTAINER, createContainer);
         CommandCentral.addCommand(EngineTypes.FIT_CONTAINER, createFitContainer);
-        //CommandCentral.addCommand(EngineTypes.GRID_CONTAINER, createGridContainer);
+        CommandCentral.addCommand(EngineTypes.GRID_CONTAINER, createGridContainer);
         CommandCentral.addCommand(EngineTypes.HORIZONTAL_CONTAINER, createHorizontalContainer);
         CommandCentral.addCommand(EngineTypes.VERTICAL_CONTAINER, createVerticalContainer);
     }
@@ -81,7 +79,7 @@ class CoreFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
         
-        if (null != displayObj && Std.is(displayObj, BaseContainer))
+        if (null != displayObj && Std.isOfType(displayObj, BaseContainer))
         {
             var baseContainer : IBaseContainer = cast(displayObj, IBaseContainer);
             CoreCommandPlugin.setComponentData(data, baseContainer);
@@ -107,7 +105,7 @@ class CoreFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, FitContainer))
+        if (null != displayObj && Std.isOfType(displayObj, FitContainer))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             
@@ -132,7 +130,7 @@ class CoreFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, GridContainer))
+        if (null != displayObj && Std.isOfType(displayObj, GridContainer))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
 
@@ -161,7 +159,7 @@ class CoreFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, HorizontalContainer))
+        if (null != displayObj && Std.isOfType(displayObj, HorizontalContainer))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             return displayObj;
@@ -182,7 +180,7 @@ class CoreFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, VerticalContainer))
+        if (null != displayObj && Std.isOfType(displayObj, VerticalContainer))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             return displayObj;
@@ -307,10 +305,10 @@ class CoreFrameworkPlugin
         {
             var element : DisplayObject = oldLayer.getChildAt(i);
             
-            if (null != element && Std.is(element, IBaseUI))
+            if (null != element && Std.isOfType(element, IBaseUI))
                 CommandDispatch.removeAllEvents(cast(element, IBaseUI));
             
-            if (null != element && Std.is(element, IBaseContainer))
+            if (null != element && Std.isOfType(element, IBaseContainer))
                 CoreCommandPlugin.removeContainerEvents(cast(element, IBaseContainer));
         }
         
@@ -450,24 +448,25 @@ class CoreFrameworkPlugin
     private static function subThread(task : ITask) : Void
     {
         
-        //items : Array<Dynamic>, displayObj : DisplayObject
+        var items : Array<Dynamic> = task.data[0];
+        var displayObj : DisplayObject = task.data[1];
 
-        // var dataObj : Dynamic = items[task.index - 1];
+        var dataObj : Dynamic = items[task.index - 1];
         
-        // for (index in Reflect.fields(dataObj))
-        // {
-        //     // Run command long as it's not another screen or layer
-        //     try {
+        for (index in Reflect.fields(dataObj))
+        {
+            // Run command long as it's not another screen or layer
+            try {
                 
-        //         if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
-        //             CommandCentral.runCommand(index, Reflect.field(dataObj, index), try cast(displayObj, Sprite) catch(e:Dynamic) null);
-        //         }
-        //     }
-        //     catch (error : Error)
-        //     {
-        //         Debug.print("[CoreFrameworkPlugin::subThread] Couldn't run command " + index + ".");
-        //     }
-        // }
+                if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
+                    CommandCentral.runCommand(index, Reflect.field(dataObj, index), try cast(displayObj, Sprite) catch(e:Dynamic) null);
+                }
+            }
+            catch (error : Error)
+            {
+                Debug.print("[CoreFrameworkPlugin::subThread] Couldn't run command " + index + ".");
+            }
+        }
     }
     
     private static function removeContainerEvents(baseContainer : IBaseContainer) : Void
@@ -479,10 +478,10 @@ class CoreFrameworkPlugin
         {
             var subElement : DisplayObject = containerArea.getChildAt(i);
             
-            if (Std.is(subElement, IBaseUI))
+            if (Std.isOfType(subElement, IBaseUI))
                 CommandDispatch.removeAllEvents(cast(subElement, IBaseUI));
             
-            if (Std.is(subElement, IBaseContainer))
+            if (Std.isOfType(subElement, IBaseContainer))
                 CoreCommandPlugin.removeContainerEvents(cast(subElement, IBaseContainer));
         }
     }

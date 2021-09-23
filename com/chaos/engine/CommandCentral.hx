@@ -9,8 +9,48 @@ import openfl.display.Sprite;
 class CommandCentral
 {
     private static var list : Dynamic = {};
+    private static var pluginNameList : Dynamic = {};
     
+    /**
+    * Add name and version plugin
+    * @param	name The name of the plugin
+    * @param	ver The major and minor version number of the plugin
+    */
+    public static function addPluginName(name : String, ver : Float) : Void
+    {
+        Reflect.setField(pluginNameList, name, ver);
+    }
     
+    /**
+    * Check to see if the plugin is being used
+    * @param	name The name of the plugin
+    * @param	ver The major and minor version number of the plugin
+    * @return	True if plubin is being used
+    */
+
+    public static function hasPlugin(name : String, ver : Float = 0) : Bool
+    {
+        // If version number is 0 just make sure plugin is there else make sure number stroed is greater than number stored
+        if(Reflect.hasField(pluginNameList, name) && ver <= 0) {
+            return true;
+        }
+        else if(Reflect.hasField(pluginNameList, name) && Reflect.field(pluginNameList, name) >= ver) {
+            return true;
+        }
+
+        return false;
+    }
+    
+    /**
+    * Check to see if command is being used
+    * @param	key This is a name that will be used to call the function.
+    * @return	True if command has been found
+    */
+    public static function hasCommand(key : String) : Bool
+    {
+        return Reflect.hasField(list, key);
+    }
+
     /**
     * Adds a function to be called
     * @param	key This is a name that will be used to call the function.

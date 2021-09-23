@@ -4,11 +4,10 @@ package com.chaos.engine;
 import com.chaos.engine.event.EngineDispatchEvent;
 import com.chaos.engine.loader.JSONReader;
 import com.chaos.engine.loader.classInterface.IReader;
-import com.chaos.utils.Debug;
 import com.chaos.engine.event.CoreEngineEvent;
 import com.chaos.engine.plugin.CoreFrameworkPlugin;
-import com.chaos.engine.plugin.CoreMediaPlugin;
-import com.chaos.engine.plugin.CoreUIFrameworkPlugin;
+
+import com.chaos.utils.Debug;
 
 import openfl.errors.Error;
 import openfl.display.DisplayObject;
@@ -39,10 +38,7 @@ class CoreEngine extends Sprite
         super();
         
         // Loading required plugins
-        CoreFrameworkPlugin.initialize();
-        CoreUIFrameworkPlugin.initialize();
-        CoreMediaPlugin.initialize();
-        //CoreTweenPlugin.initialize();
+        //CoreFrameworkPlugin.initialize();
         
         
         if (null != stage)

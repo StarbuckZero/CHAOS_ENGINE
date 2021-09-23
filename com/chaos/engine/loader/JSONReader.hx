@@ -64,7 +64,7 @@ class JSONReader extends Reader implements IReader
         
         var dataObj : Dynamic = Std.is(data, String) ? Json.parse(Std.string(data)) : data;
         
-        if (Std.is(dataObj, Dynamic) && Reflect.hasField(dataObj,"imges"))
+        if (Std.isOfType(dataObj, Dynamic) && Reflect.hasField(dataObj,"imges"))
             list = list.concat( Reflect.field(dataObj,"items"));
         
         loaded = true;
@@ -91,8 +91,6 @@ class JSONReader extends Reader implements IReader
                 _eventDispatcher.dispatchEvent(new CoreEngineEvent(CoreEngineEvent.READING));
                 CommandDispatch.dispatch("Reader", CoreEngineEvent.READING, {});
             }
-            
-            
 
             if (Reflect.hasField(dataObj, EngineTypes.LAYER))
             {
