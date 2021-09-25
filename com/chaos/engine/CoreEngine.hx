@@ -5,7 +5,6 @@ import com.chaos.engine.event.EngineDispatchEvent;
 import com.chaos.engine.loader.JSONReader;
 import com.chaos.engine.loader.classInterface.IReader;
 import com.chaos.engine.event.CoreEngineEvent;
-import com.chaos.engine.plugin.CoreFrameworkPlugin;
 
 import com.chaos.utils.Debug;
 
@@ -37,8 +36,7 @@ class CoreEngine extends Sprite
     {
         super();
         
-        // Loading required plugins
-        //CoreFrameworkPlugin.initialize();
+        // Extend class and add plugins there
         
         
         if (null != stage)

@@ -1,5 +1,7 @@
 package com.chaos.engine.plugin;
 
+import haxe.macro.Type.Ref;
+import openfl.display.BitmapData;
 import com.chaos.ui.data.BaseObjectData;
 import com.chaos.engine.CommandDispatch;
 import com.chaos.form.FormBuilder;
@@ -131,9 +133,9 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand(ScrollPane.TYPE, createScrollPane);  // Not needed  
         CommandCentral.addCommand(Window.TYPE, createWindow);  //Event  
         CommandCentral.addCommand(WindowManager.TYPE, createWindowManager);  // Not needed  
-        CommandCentral.addCommand(ToolTip.TYPE, updateToolTip);  // Not needed  
+        CommandCentral.addCommand(ToolTip.TYPE, updateToolTip);
         CommandCentral.addCommand(ProgressBar.TYPE, createProgressBar);
-        CommandCentral.addCommand(FormBuilder.TYPE, createForm);  // Not needed  
+        CommandCentral.addCommand(FormBuilder.TYPE, createForm);
         
         // Theme
         CommandCentral.addCommand(EngineTypes.LOAD_THEME, loadTheme);
@@ -189,7 +191,7 @@ class CoreUIFrameworkPlugin
     
     private static function updateToolTip(data : Dynamic) : Dynamic
     {
-        if (data.exists("text") && data.exists("attach"))
+        if ( Reflect.hasField(data,"text") && Reflect.hasField(data"attach"))
         {
             var objWidth : Int =  Reflect.hasField(data,"width") ? Reflect.field(data,"width") : -1;
             var objHeight : Int = Reflect.hasField(data,"height") ? Reflect.field(data,"height") : -1;
@@ -213,87 +215,31 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
-    private static function updateItemData(data : Dynamic) : Dynamic
-    {
-        // var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
-        
-        // if (null != displayObj && data.exists("items") && data.items.length > 0)
-        // {
-        //     if (Std.is(displayObj, ItemPane))
-        //     {
-        //         var itemPane : IItemPane = try cast(displayObj, ItemPane) catch(e:Dynamic) null;
-        //         var itemData : DataProvider<TaskDataObject> = itemPane.dataProvider;
-                
-        //         if (data.exists("append") && !data.append)
-        //         {
-        //             itemPane.dataProvider.removeAll();
-        //         }
-                
-        //         // Add items in the background
-        //         ThreadManager.createTaskManager(ItemPane.TYPE, displayArea);
-        //         ThreadManager.addTask(ItemPane.TYPE, new TaskDataObject("item" + itemPane.name, 0, data.items.length, null, updateItemPaneData, data, itemPane, itemData));
-        //     }
-        //     else if (Std.is(displayObj, List))
-        //     {
-        //         var listBox : IListBox = cast(displayObj, ListBox);
-        //         var listData : DataProvider<ListObjectData> = listBox.dataProvider;
-                
-        //         if (data.exists("append") && !data.append)
-        //         {
-        //             listBox.dataProvider.removeAll();
-        //         }
-                
-        //         // Add items in the background
-        //         ThreadManager.createTaskManager(ListBox.TYPE, displayArea);
-        //         ThreadManager.addTask(ListBox.TYPE, new ListObjectData("list" + listBox.name, 0, data.items.length, null, updateListBoxData, data, listBox, listData));
-        //     }
-        //     else if (Std.is(displayObj, ComboBox))
-        //     {
-        //         var comboBox : IComboBox = try cast(displayObj, ComboBox) catch(e:Dynamic) null;
-        //         var comboData : DataProvider<ComboBoxObjectData> = comboBox.dataProvider;
-                
-        //         if (data.exists("append") && !data.append)
-        //         {
-        //             comboBox.dataProvider.removeAll();
-        //         }
-                
-        //         // Add items in the background
-        //         ThreadManager.createTaskManager(ComboBox.TYPE, displayArea);
-        //         ThreadManager.addTask(ComboBox.TYPE, new ComboBoxObjectData("combo" + comboBox.name, 0, data.items.length, null, updateComboBoxData, data, comboBox, comboData));
-        //     }
-            
-        //     return displayObj;
-        // }
-        
-        return null;
-    }
     
     private static function createForm(data : Dynamic) : Dynamic
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, FormBuilder))
+        if (null != displayObj && Std.isOfType(displayObj, FormBuilder))
         {
-            //setFormBuilder(data, try cast(displayObj, FormBuilder) catch(e:Dynamic) null);
+            CoreCommandPlugin.setComponentData(data, displayObj);
+
+            if(Reflect.hasField(data,"data"))
+                updateForm(Reflect.field(data,"data"), cast(displayObj,FormBuilder));
+
             return displayObj;
         }
         else
         {
-            var form : IFormBuilder = new FormBuilder();
-            
-            // setFormBuilder(data, form);
-            
-            // Add items in the background
-            // if (data.exists("items") && data.items.length > 0)
-            // {
-            //     ThreadManager.createTaskManager(FormBuilder.TYPE, displayArea);
-            //     ThreadManager.addTask(FormBuilder.TYPE, new TaskDataObject("formBuilder_" + form.name, 0, data.items.length, null, updateFormData, data, form));
-            // }
-            
-            CoreCommandPlugin.displayUpdate(form, data);
+            var form : IFormBuilder = new FormBuilder(data);
 
+            if(Reflect.hasField(data,"data"))
+                updateForm(Reflect.field(data,"data"), form);
+    
+            CoreCommandPlugin.displayUpdate(form, data);
             return form;
         }
+
 
     }
     
@@ -301,7 +247,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, Window))
+        if (null != displayObj && Std.is(displayObj, ProgressBar))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -339,7 +285,6 @@ class CoreUIFrameworkPlugin
         if(!Reflect.hasField(data,"height"))
             Reflect.setField(data,"height",300);
 
-    
         var newWindowManagerHolder : IBaseContainer = new BaseContainer(data);
         var windowManager : WindowManager = new WindowManager();
         windowManager.name = "window_manager";
@@ -348,7 +293,7 @@ class CoreUIFrameworkPlugin
         
         Reflect.setField(winManagers, Std.string(newWindowManagerHolder.name), windowManager);
         
-        (try cast(newWindowManagerHolder.content, Sprite) catch(e:Dynamic) null).addChildAt(windowManager, 0);
+        cast(newWindowManagerHolder.content, Sprite).addChildAt(windowManager, 0);
         
         return windowManager;
     }
@@ -357,7 +302,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, Window))
+        if (null != displayObj && Std.isOfType(displayObj, Window))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -371,19 +316,14 @@ class CoreUIFrameworkPlugin
             if(!Reflect.hasField(data,"height"))
                 Reflect.setField(data,"height",300);
     
-            
             var window : IWindow = new Window(data);
             
-            if (data.exists("manager"))
+            if (Reflect.hasField(data,"manager"))
             {
-                if (winManagers.exists(data.manager))
-                {
-                    cast(Reflect.field(winManagers, Std.string(data.manager)), WindowManager).addChild(window.displayObject);
-                }
+                if (Reflect.hasField(winManagers, Reflect.field(data,"manager")))
+                    cast(Reflect.field(winManagers, Reflect.field(data,"manager"), WindowManager).addChild(window.displayObject);
                 else
-                {
-                    Debug.print("[UIFrameworkPlugin::createWindow] Couldn't find window manager by the name of " + data.manager + ".");
-                }
+                    Debug.print("[UIFrameworkPlugin::createWindow] Couldn't find window manager by the name of " + Reflect.field(data,"manager") + ".");
             }
             
             // Add to display
@@ -433,7 +373,7 @@ class CoreUIFrameworkPlugin
     
     private static function createScrollPane(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
         if (null != displayObj && Std.is(displayObj, ScrollPane))
         {
@@ -460,9 +400,7 @@ class CoreUIFrameworkPlugin
     }
     
     private static function createButton(data : Dynamic) : Dynamic
-    {
-        // {"Button":{"name":"myButton","text":"Button","width":100,"height":100,"enabled":true,"iconURL":"icon.png"}}
-        
+    {        
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
         if (displayObj != null && Std.is(displayObj, Button))
@@ -483,7 +421,7 @@ class CoreUIFrameworkPlugin
             var button : IButton = new Button(data);
             
             CommandDispatch.attachEvent(button, MouseEvent.CLICK);
-            CoreCommandPlugin.displayUpdate(button, CoreCommandPlugin.getDisplayObject(data));
+            CoreCommandPlugin.displayUpdate(button, data);
             
             return button;
         }
@@ -502,7 +440,7 @@ class CoreUIFrameworkPlugin
 
         var toggleBtn : IToggleButton = new ToggleButton(data);
         
-        CoreCommandPlugin.displayUpdate(toggleBtn, CoreCommandPlugin.getDisplayObject(data));
+        CoreCommandPlugin.displayUpdate(toggleBtn, data);
         CommandDispatch.attachEvent(toggleBtn, MouseEvent.CLICK);
         
         return toggleBtn;
@@ -531,8 +469,7 @@ class CoreUIFrameworkPlugin
             // Do check for in data obj reverse
             var menu : IMenu = new Menu(data);
             
-            
-            CoreCommandPlugin.displayUpdate(menu, CoreCommandPlugin.getDisplayObject(data));
+            CoreCommandPlugin.displayUpdate(menu, data);
             CommandDispatch.attachEvent(menu, MenuEvent.MENU_BUTTON_CLICK);
             
             return menu;
@@ -549,6 +486,9 @@ class CoreUIFrameworkPlugin
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
+            if(Reflect.hasField(data,"column"))
+                updateGridPane(Reflect.field(data,"column"), cast(displayObj,GridPane));
+
             return displayObj;
         }
         else
@@ -561,8 +501,11 @@ class CoreUIFrameworkPlugin
                 Reflect.setField(data,"height",20);
             
             var gridPane : IGridPane = new GridPane(data);
-                        
-            CoreCommandPlugin.displayUpdate(gridPane, CoreCommandPlugin.getDisplayObject(data));
+
+            if(Reflect.hasField(data,"column"))
+                updateGridPane(Reflect.field(data,"column"), cast(gridPane,GridPane));
+            
+            CoreCommandPlugin.displayUpdate(gridPane, data);
             
             CommandDispatch.attachEvent(gridPane, GridPaneEvent.SELECT);
             CommandDispatch.attachEvent(gridPane, GridPaneEvent.CHANGE);
@@ -608,28 +551,29 @@ class CoreUIFrameworkPlugin
     private static function createAlertBox(data : Dynamic) : Dynamic
     {
         // Must have everything
-        // if (data.exists("message") && data.exists("title") && null != displayArea)
-        // {
-        //     var alertBoxIcon : DisplayImage = new DisplayImage();
-        //     var windowIcon : DisplayImage = new DisplayImage();
+        if (Reflect.hasField(data,"message") && Reflect.hasField(data,"title") && null != displayArea)
+        {
+            var alertBoxIcon : BitmapData;
+            var windowIcon : BitmapData;
             
-        //     if (data.exists("alertBoxIcon"))
-        //     {
-        //         alertBoxIcon.setImage(CoreCommandPlugin.getImage(data.alertBoxIcon));
-        //     }
+            if (Reflect.hasField(data,"alertBoxIcon"))
+                alertBoxIcon = Reflect.field(data,"alertBoxIcon");
             
-        //     if (data.exists("windowIcon"))
-        //     {
-        //         windowIcon.setImage(CoreCommandPlugin.getImage(data.windowIcon));
-        //     }
+            if (Reflect.hasField(data,"windowIcon"))
+                windowIcon = Reflect.field(data,"windowIcon");
+
+            var message : String = Reflect.field(data,"message");
+            var title : String = Reflect.field(data,"title");
+
+            var button : IButton = Reflect.field(data,"button");
             
-        //     var alert : Sprite = Alert.create(data.message, data.title, ((data.exists("button"))) ? data.button : null, ((null != alertBoxIcon.image)) ? alertBoxIcon : null, ((null != windowIcon.image)) ? windowIcon : null, onAlertButtonClick);
+            var alert : Sprite = Alert.create( message, title, button, alertBoxIcon , windowIcon, onAlertButtonClick);
             
-        //     displayArea.addChild(alert);
-        //     return alert;
-        // }
+            displayArea.addChild(alert);
+            return alert;
+        }
         
-        // setAlertBox(data);
+        setAlertBox(data);
         
         
         return null;
@@ -653,7 +597,6 @@ class CoreUIFrameworkPlugin
                 Reflect.setField(data,"height",20);
             
             var label : ILabel = new Label(data);
-            
             
             CoreCommandPlugin.displayUpdate(label, data);
             CommandDispatch.attachEvent(label, MouseEvent.CLICK);
@@ -726,7 +669,7 @@ class CoreUIFrameworkPlugin
 
         var radioGroup : IRadioButtonGroup = new RadioButtonGroup( data );
         
-        CoreCommandPlugin.displayUpdate(radioGroup, CoreCommandPlugin.getDisplayObject(data));
+        CoreCommandPlugin.displayUpdate(radioGroup, data);
         CommandDispatch.attachEvent(radioGroup, Event.CHANGE);
         
         return radioGroup;
@@ -853,159 +796,75 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
+    private static function updateForm(data:Dynamic, formBuilder:IFormBuilder ) : Void {
 
+        for(item in Reflect.fields(Reflect.field(data,"data"))) {
+
+            var elementClass : Class<Dynamic> = null;
+            var elementParams : Dynamic = null;
+            var layoutClass : Dynamic = null;
+            var params : Dynamic = null;
+
+            if(Reflect.hasField(item,"elementClass"))
+                elementClass = getFormClass(Reflect.field(item,"elementClass"));
+
+            if(Reflect.hasField(item,"elementClass"))
+                elementParams = Reflect.field(item,"elementParams")
+
+            if(Reflect.hasField(item,"layoutClass"))
+                layoutClass = getCellLayout(Reflect.field(item,"layoutClass"));
+
+            if(Reflect.hasField(item,"layoutClass"))
+                params = Reflect.field(item,"params")
+
+            form.addFormElement(Reflect.field(item,"labelName"), Reflect.field(item,"elementName"), elementClass , elementParams , layoutClass , params );
+
+        }
+
+    }
+
+    private static function updateGridPane(column:Array<Dynamic>, gridPane:IGridPane ) : Void {
+
+        for(i in column ... column.length) {
+
+            var colData:Dynamic = column[i];
+
+            if(Reflect.hasField(colData,"colName") && Reflect.hasField(colData,"element") && Reflect.hasField(colData,"dataRowName")) {
+
+                var colName : String = Reflect.field(colData,"colName");
+                var element : Class<Dynamic> = getFormClass(Reflect.field(colData,"element"));
+                var dataRowName : String = Reflect.field(colData,"dataRowName");
+                var gridLayout : Class<Dynamic> = null;
+                var data : Dynamic = {};
+
+                if(Reflect.hasField(colData,"gridLayout"))
+                    gridLayout = getCellLayout(Reflect.field(colData,"gridLayout"));
+
+                if(Reflect.hasField(colData,"data"))
+                    data = getCellLayout(Reflect.field(colData,"data"));
+
+                gridPane.addColumn(colName, element, dataRowName, gridLayout, data);
+    
+            }
+                
+        }
+
+
+        
+    }
     
     private static function setAlertBox(data : Dynamic) : Void
     {
-        // if (data.exists("tintAlpha"))
-        // {
-        //     Alert.tintAlpha = data.tintAlpha;
-        // }
+        if (Reflect.hasField(data,"tintAlpha"))
+            Alert.tintAlpha = Reflect.field(data,"tintAlpha") ;
         
-        // if (data.exists("tintBackgroundColor"))
-        // {
-        //     Alert.tintBackgroundColor = data.tintBackgroundColor;
-        // }
+        if (Reflect.hasField(data,("tintBackgroundColor") )
+            Alert.tintBackgroundColor = Reflect.field(data,"tintBackgroundColor");
         
-        // if (data.exists("alignWindowToCenter"))
-        // {
-        //     Alert.alignWindowToCenter = data.alignWindowToCenter;
-        // }
-    }
-    
-    
-    private static function updateFormData(task : ITask, data : Dynamic, formBuilder : IFormBuilder) : Void
-    {
-        // var item : Dynamic = data.items[task.index - 1];
-        
-        // var element : IFormUI;
-        // var elementName : String = "";
-        // var i : Int = 0;
-        // var elementData : Dynamic;
-        
-        // // Get name of item
-        // for (index in Reflect.fields(item))
-        // {
-        //     elementName = index;
-        // }
-        
-        // elementData = Reflect.field(item, Std.string(index));
-        
-        // // Figure out if it's a special case
-        // if (elementName == "Select" || elementName == "DropDownMenu" || elementName == "CheckBoxList" || elementName == "RadioButtonList")
-        // {
-        //     if (elementName == "Select")
-        //     {
-        //         var selectWidth : Float = ((elementData.exists("width"))) ? as3hx.Compat.parseFloat(elementData.width) : 100;
-        //         var selectHeight : Float = ((elementData.exists("height"))) ? as3hx.Compat.parseFloat(elementData.height) : 100;
-        //         var selectData : DataProvider = new DataProvider();
-                
-        //         if (elementData.exists("items") && elementData.items.length > 0)
-        //         {
-        //             for (i in 0...elementData.items.length)
-        //             {
-        //                 selectData.addItem(new ListObjectData(elementData.items.text, elementData.items.value, elementData.items.selected));
-        //             }
-        //         }
-                
-        //         element = new Select(selectWidth, selectHeight, selectData);
-        //     }
-        //     else if (elementName == "DropDownMenu")
-        //     {
-        //         var downDropWidth : Float = ((elementData.exists("width"))) ? as3hx.Compat.parseFloat(elementData.width) : -1;
-        //         var downDropHeight : Float = ((elementData.exists("height"))) ? as3hx.Compat.parseFloat(elementData.height) : -1;
-        //         var downDropData : DataProvider = new DataProvider();
-                
-        //         if (elementData.exists("items") && elementData.items.length > 0)
-        //         {
-        //             for (i in 0...elementData.items.length)
-        //             {
-        //                 downDropData.addItem(new ComboBoxObjectData(elementData.items.text, elementData.items.value, elementData.items.selected));
-        //             }
-        //         }
-                
-        //         element = new DropDownMenu(downDropWidth, downDropHeight, downDropData);
-        //     }
-        //     else if (elementName == "CheckBoxList")
-        //     {
-        //         var checkBoxData : Dynamic = elementData;
-        //         var checkGroup : CheckBoxList = new CheckBoxList(((checkBoxData.exists("group"))) ? checkBoxData.group : "checkBoxGroup");
-                
-        //         checkGroup.width = ((checkBoxData.exists("width"))) ? as3hx.Compat.parseFloat(checkBoxData.width) : 100;
-        //         checkGroup.height = ((checkBoxData.exists("height"))) ? as3hx.Compat.parseFloat(checkBoxData.height) : 30;
-                
-        //         for (i in 0...checkBoxData.items.length)
-        //         {
-        //             var checkData : Dynamic = checkBoxData.items[i];
-        //             var checkSelected : Bool = ((checkData.exists("selected"))) ? checkData.selected : false;
-                    
-        //             if (checkData.exists("name") && checkData.exists("text"))
-        //             {
-        //                 checkGroup.createCheckBox(checkData.name, checkData.text, checkSelected);
-        //             }
-        //         }
-                
-        //         element = try cast(checkGroup, IFormUI) catch(e:Dynamic) null;
-        //         CoreCommandPlugin.setBaseElementUI(checkBoxData, checkGroup);
-        //     }
-        //     else if (elementName == "RadioButtonList")
-        //     {
-        //         var radioButtonData : Dynamic = elementData;
-        //         var radioGroup : IRadioGroup = new RadioButtonList(((radioButtonData.exists("group"))) ? radioButtonData.group : "radioButtonGroup");
-                
-        //         radioGroup.width = ((radioButtonData.exists("width"))) ? as3hx.Compat.parseFloat(data.width) : 100;
-        //         radioGroup.height = ((radioButtonData.exists("height"))) ? as3hx.Compat.parseFloat(data.height) : 30;
-                
-        //         for (i in 0...radioButtonData.items.length)
-        //         {
-        //             var radioData : Dynamic = radioButtonData.items[i];
-        //             var radioSelected : Bool = ((radioData.exists("selected"))) ? radioData.selected : false;
-                    
-        //             if (radioData.exists("name") && radioData.exists("text"))
-        //             {
-        //                 radioGroup.createRadioButton(radioData.name, radioData.text, radioSelected);
-        //             }
-        //         }
-                
-        //         element = try cast(radioGroup, IFormUI) catch(e:Dynamic) null;
-        //         CoreCommandPlugin.setBaseElementUI(radioButtonData, radioGroup);
-        //     }
-        // }
-        // else
-        // {
-        //     var FormClass : Class<Dynamic> = getFormClass(elementName);
-        //     element = Type.createInstance(FormClass, []);
-            
-        //     if (Std.is(element, TextInput))
-        //     {
-        //         setInputElement(elementData, try cast(element, TextInput) catch(e:Dynamic) null);
-        //     }
-        //     else if (Std.is(element, Label))
-        //     {
-        //         CoreCommandPlugin.setLabelElement(elementData, try cast(element, Label) catch(e:Dynamic) null);
-        //     }
-        // }
-        
-        
-        // var formObjName : String = ((elementData.exists("name"))) ? elementData.name : "Element" + task.index;
-        // var formObjLabel : String = ((elementData.exists("name"))) ? elementData.name : "Element" + task.index;
-        
-        // if (data.exists("element") && data.element[task.index - 1] != null)
-        // {
-        //     var elementObj : Dynamic = data.element[task.index - 1];
-            
-        //     if (elementObj.exists("labelName"))
-        //     {
-        //         formObjLabel = elementObj.labelName;
-        //     }
-            
-        //     if (elementObj.exists("elementName"))
-        //     {
-        //         formObjName = elementObj.elementName;
-        //     }
-        // }
-        
-        // formBuilder.addFormElement(formObjLabel, formObjName, element, ((item.exists("layout"))) ? getCellLayout(item.layout) : null, ((item.exists("params"))) ? item.params : null);
+        if (data.exists("alignWindowToCenter"))
+        {
+            Alert.alignWindowToCenter = data.alignWindowToCenter;
+        }
     }
     
     

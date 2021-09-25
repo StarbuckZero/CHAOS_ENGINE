@@ -52,6 +52,9 @@ class CoreFrameworkPlugin
     
     public static function initialize() : Void
     {
+        // Add plugin name
+        CommandCentral.addPluginName("CoreFrameworkPlugin",1.0);
+
         // Core Engine Functions
         CommandCentral.addCommand(EngineTypes.LAYER, createLayer);
         CommandCentral.addCommand(EngineTypes.SCREEN, createScreen);
@@ -77,7 +80,7 @@ class CoreFrameworkPlugin
     
     private static function createContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
         if (null != displayObj && Std.isOfType(displayObj, BaseContainer))
         {
@@ -116,10 +119,7 @@ class CoreFrameworkPlugin
             var fitContainer : IFitContainer = new FitContainer(data);
             
             buildContentArea(EngineTypes.FIT_CONTAINER, fitContainer, data);
-            
-            if (Reflect.hasField(data, "direction"))
-                fitContainer.direction = Reflect.field(data, "direction");
-            
+                        
             CoreCommandPlugin.displayUpdate(fitContainer, data);
 
             return fitContainer;
@@ -274,13 +274,13 @@ class CoreFrameworkPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
-            var items : Array<Dynamic> = Reflect.fields(Reflect.field(data,"item"));
-            var newLayer : Sprite = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")),Sprite);
+            var item : Dynamic = Reflect.fields(Reflect.field(data,"item"));
+            var newLayer : Sprite = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), Sprite);
             var displayObj : DisplayObject = null;
             
             // Run command on item at the root of data object
-            for (index in items)
-                displayObj = CommandCentral.runCommand(index, Reflect.field(items, index) );
+            for (index in item)
+                displayObj = CommandCentral.runCommand(index, Reflect.field(item, index) );
             
             // Add item to the layer
             if (null != displayObj)
@@ -375,7 +375,8 @@ class CoreFrameworkPlugin
             Reflect.setField(data,"height",300);
 
         var newScreen : IBaseContainer = new BaseContainer(data);
-                
+        
+        // Cache screen
         Reflect.setField(screenCache, Reflect.field(data,"name"), newScreen);
         
         // Add items in the background
@@ -459,7 +460,7 @@ class CoreFrameworkPlugin
             try {
                 
                 if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
-                    CommandCentral.runCommand(index, Reflect.field(dataObj, index), try cast(displayObj, Sprite) catch(e:Dynamic) null);
+                    CommandCentral.runCommand(index, Reflect.field(dataObj, index), cast(displayObj, Sprite));
                 }
             }
             catch (error : Error)
