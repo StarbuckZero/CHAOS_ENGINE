@@ -50,7 +50,8 @@ class CoreCommandPlugin
         // First check to see if display area was passed in if not just grab layer or main timeline
         if(Reflect.hasField(data,"displayArea")) 
         {
-            return Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"displayArea"));
+            return Reflect.field(data,"displayArea");
+            //return cast(Utils.getNestedChild(Global.mainDisplyArea, ),Sprite);
         }
         else 
         {

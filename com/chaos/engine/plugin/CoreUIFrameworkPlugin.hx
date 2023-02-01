@@ -116,26 +116,26 @@ class CoreUIFrameworkPlugin
     public static function initialize() : Void
     {
         
-        CommandCentral.addCommand(Button.TYPE, createButton);  //Event  
-        CommandCentral.addCommand(ToggleButton.TYPE, createToggleButton);  //Event  
-        CommandCentral.addCommand(RadioButton.TYPE, createRadioButton);  //Event  
-        CommandCentral.addCommand(CheckBox.TYPE, createCheckBox);  //Event  
-        CommandCentral.addCommand(ComboBox.TYPE, createComboBox);  //Event  
-        CommandCentral.addCommand(ListBox.TYPE, createListBox);  //Event  
-        CommandCentral.addCommand(ItemPane.TYPE, createItemPane);  //Event  
-        CommandCentral.addCommand(Label.TYPE, createLabel);  //Event  
-        CommandCentral.addCommand(TextInput.TYPE, createTextInput);  //Event  
-        CommandCentral.addCommand(Alert.TYPE, createAlertBox);
-        CommandCentral.addCommand(Slider.TYPE, createSlider);  //Event  
-        CommandCentral.addCommand(GridPane.TYPE, createGridPane);  //Event  
-        CommandCentral.addCommand(Menu.TYPE, createMenu);  //Event  
-        CommandCentral.addCommand(TabPane.TYPE, createTabPane);  //Event  
-        CommandCentral.addCommand(ScrollPane.TYPE, createScrollPane);  // Not needed  
-        CommandCentral.addCommand(Window.TYPE, createWindow);  //Event  
-        CommandCentral.addCommand(WindowManager.TYPE, createWindowManager);  // Not needed  
-        CommandCentral.addCommand(ToolTip.TYPE, updateToolTip);
-        CommandCentral.addCommand(ProgressBar.TYPE, createProgressBar);
-        CommandCentral.addCommand(FormBuilder.TYPE, createForm);
+        CommandCentral.addCommand("Button", createButton);  //Event  
+        CommandCentral.addCommand("ToggleButton", createToggleButton);  //Event  
+        CommandCentral.addCommand("RadioButton", createRadioButton);  //Event  
+        CommandCentral.addCommand("CheckBox", createCheckBox);  //Event  
+        CommandCentral.addCommand("ComboBox", createComboBox);  //Event  
+        CommandCentral.addCommand("ListBox", createListBox);  //Event  
+        CommandCentral.addCommand("ItemPane", createItemPane);  //Event  
+        CommandCentral.addCommand("Label", createLabel);  //Event  
+        CommandCentral.addCommand("TextInput", createTextInput);  //Event  
+        CommandCentral.addCommand("Alert", createAlertBox);
+        CommandCentral.addCommand("Slider", createSlider);  //Event  
+        CommandCentral.addCommand("GridPane", createGridPane);  //Event  
+        CommandCentral.addCommand("Menu", createMenu);  //Event  
+        CommandCentral.addCommand("TabPane", createTabPane);  //Event  
+        CommandCentral.addCommand("ScrollPane", createScrollPane);  // Not needed  
+        CommandCentral.addCommand("Window", createWindow);  //Event  
+        CommandCentral.addCommand("WindowManager", createWindowManager);  // Not needed  
+        CommandCentral.addCommand("ToolTip", updateToolTip);
+        CommandCentral.addCommand("ProgressBar", createProgressBar);
+        CommandCentral.addCommand("FormBuilder", createForm);
         
         // Theme
         CommandCentral.addCommand(EngineTypes.LOAD_THEME, loadTheme);
@@ -146,7 +146,7 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand(EngineTypes.REMOVE_ITEM, removeItem);
         
         // Data
-        CommandCentral.addCommand(EngineTypes.DATA_UPDATE, updateItemData);
+        //CommandCentral.addCommand(EngineTypes.DATA_UPDATE, updateItemData);
     }
     
     
@@ -176,11 +176,11 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (Std.is(displayObj, IBaseUI))
+        if (Std.isOfType(displayObj, IBaseUI))
             CommandDispatch.removeAllEvents(try cast(displayObj, IBaseUI) catch(e:Dynamic) null);
         
         
-        if (Std.is(displayObj, IBaseContainer))
+        if (Std.isOfType(displayObj, IBaseContainer))
             CoreCommandPlugin.removeContainerEvents(try cast(displayObj, IBaseContainer) catch(e:Dynamic) null);
         
         if (null != displayObj.parent)
@@ -191,7 +191,7 @@ class CoreUIFrameworkPlugin
     
     private static function updateToolTip(data : Dynamic) : Dynamic
     {
-        if ( Reflect.hasField(data,"text") && Reflect.hasField(data"attach"))
+        if ( Reflect.hasField(data,"text") && Reflect.hasField(data,"attach"))
         {
             var objWidth : Int =  Reflect.hasField(data,"width") ? Reflect.field(data,"width") : -1;
             var objHeight : Int = Reflect.hasField(data,"height") ? Reflect.field(data,"height") : -1;
@@ -222,7 +222,7 @@ class CoreUIFrameworkPlugin
         
         if (null != displayObj && Std.isOfType(displayObj, FormBuilder))
         {
-            CoreCommandPlugin.setComponentData(data, displayObj);
+            CoreCommandPlugin.setComponentData(data, cast(displayObj,BaseUI));
 
             if(Reflect.hasField(data,"data"))
                 updateForm(Reflect.field(data,"data"), cast(displayObj,FormBuilder));
@@ -247,7 +247,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, ProgressBar))
+        if (null != displayObj && Std.isOfType(displayObj, ProgressBar))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -255,12 +255,6 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",40);
             
             var progress : IProgressBar = new ProgressBar(data);
             
@@ -279,11 +273,6 @@ class CoreUIFrameworkPlugin
     
     private static function createWindowManager(data : Dynamic) : Dynamic
     {
-        if(!Reflect.hasField(data,"width"))
-            Reflect.setField(data,"width",400);
-
-        if(!Reflect.hasField(data,"height"))
-            Reflect.setField(data,"height",300);
 
         var newWindowManagerHolder : IBaseContainer = new BaseContainer(data);
         var windowManager : WindowManager = new WindowManager();
@@ -310,18 +299,16 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",400);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",300);
     
             var window : IWindow = new Window(data);
             
+            
             if (Reflect.hasField(data,"manager"))
             {
-                if (Reflect.hasField(winManagers, Reflect.field(data,"manager")))
-                    cast(Reflect.field(winManagers, Reflect.field(data,"manager"), WindowManager).addChild(window.displayObject);
+                if (Reflect.hasField(winManagers, Reflect.field(data,"manager"))) {
+                    var windowManager : WindowManager = Reflect.field(winManagers, Reflect.field(data,"manager"));
+                    windowManager.addChild(window.displayObject);
+                }
                 else
                     Debug.print("[UIFrameworkPlugin::createWindow] Couldn't find window manager by the name of " + Reflect.field(data,"manager") + ".");
             }
@@ -346,19 +333,14 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, TabPane))
+        if (null != displayObj && Std.isOfType(displayObj, TabPane))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             return displayObj;
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",400);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",300);
-            
+
             var tabPane : ITabPane = new TabPane(data);
             
             // Add to display
@@ -375,7 +357,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, ScrollPane))
+        if (null != displayObj && Std.isOfType(displayObj, ScrollPane))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             return displayObj;
@@ -383,11 +365,7 @@ class CoreUIFrameworkPlugin
         else
         {
             
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",400);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",300);
+
 
             var scrollPane : IScrollPane = new ScrollPane(data);
             
@@ -403,7 +381,7 @@ class CoreUIFrameworkPlugin
     {        
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (displayObj != null && Std.is(displayObj, Button))
+        if (displayObj != null && Std.isOfType(displayObj, Button))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -412,11 +390,7 @@ class CoreUIFrameworkPlugin
         else
         {
 
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",30);
+
             
             var button : IButton = new Button(data);
             
@@ -432,11 +406,7 @@ class CoreUIFrameworkPlugin
     private static function createToggleButton(data : Dynamic) : Dynamic
     {
         
-        if(!Reflect.hasField(data,"width"))
-            Reflect.setField(data,"width",100);
 
-        if(!Reflect.hasField(data,"height"))
-            Reflect.setField(data,"height",30);
 
         var toggleBtn : IToggleButton = new ToggleButton(data);
         
@@ -451,7 +421,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
         
-        if (null != displayObj && Std.is(displayObj, Menu))
+        if (null != displayObj && Std.isOfType(displayObj, Menu))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -460,11 +430,7 @@ class CoreUIFrameworkPlugin
         else
         {
             
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",100);
+
             
             // Do check for in data obj reverse
             var menu : IMenu = new Menu(data);
@@ -482,7 +448,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
         
-        if (null != displayObj && Std.is(displayObj, GridPane))
+        if (null != displayObj && Std.isOfType(displayObj, GridPane))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -494,11 +460,6 @@ class CoreUIFrameworkPlugin
         else
         {
 
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",20);
             
             var gridPane : IGridPane = new GridPane(data);
 
@@ -522,7 +483,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
         
-        if (null != displayObj && Std.is(displayObj, Slider))
+        if (null != displayObj && Std.isOfType(displayObj, Slider))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -531,11 +492,6 @@ class CoreUIFrameworkPlugin
         else
         {
 
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",20);
             
             var slider : ISlider = new Slider(data);
 
@@ -551,10 +507,10 @@ class CoreUIFrameworkPlugin
     private static function createAlertBox(data : Dynamic) : Dynamic
     {
         // Must have everything
-        if (Reflect.hasField(data,"message") && Reflect.hasField(data,"title") && null != displayArea)
+        if (Reflect.hasField(data,"message") && Reflect.hasField(data,"title") && Reflect.hasField(data,"displayArea"))
         {
-            var alertBoxIcon : BitmapData;
-            var windowIcon : BitmapData;
+            var alertBoxIcon : BitmapData = null;
+            var windowIcon : BitmapData = null;
             
             if (Reflect.hasField(data,"alertBoxIcon"))
                 alertBoxIcon = Reflect.field(data,"alertBoxIcon");
@@ -562,12 +518,14 @@ class CoreUIFrameworkPlugin
             if (Reflect.hasField(data,"windowIcon"))
                 windowIcon = Reflect.field(data,"windowIcon");
 
+
+            var displayArea:Sprite = Reflect.field(data,"windowIcon");
             var message : String = Reflect.field(data,"message");
             var title : String = Reflect.field(data,"title");
 
-            var button : IButton = Reflect.field(data,"button");
-            
-            var alert : Sprite = Alert.create( message, title, button, alertBoxIcon , windowIcon, onAlertButtonClick);
+            var buttonArray:Array<AlertButtonType> = alertButtonType( Reflect.field(data,"button") );
+                        
+            var alert : Sprite = Alert.create( message, title, buttonArray, alertBoxIcon , windowIcon, onAlertButtonClick);
             
             displayArea.addChild(alert);
             return alert;
@@ -583,18 +541,14 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
         
-        if (null != displayObj && Std.is(displayObj, Label))
+        if (null != displayObj && Std.isOfType(displayObj, Label))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             return displayObj;
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",20);
+
             
             var label : ILabel = new Label(data);
             
@@ -611,7 +565,7 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
         
-        if (null != displayObj && Std.is(displayObj, TextInput))
+        if (null != displayObj && Std.isOfType(displayObj, TextInput))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -619,11 +573,7 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",20);            
+        
             
             var label : ITextInput = new TextInput(data);
             
@@ -656,11 +606,6 @@ class CoreUIFrameworkPlugin
             return null;
         }
         
-        if(!Reflect.hasField(data,"width"))
-            Reflect.setField(data,"width",100);
-
-        if(!Reflect.hasField(data,"height"))
-            Reflect.setField(data,"height",30);
         
         if(!Reflect.hasField(data,"group"))
             Reflect.setField(data,"group", Reflect.field(data,"group"));
@@ -687,12 +632,6 @@ class CoreUIFrameworkPlugin
             Debug.print("[UIFrameworkPlugin::createCheckBox] Must remove and add back in.");
             return null;
         }
-
-        if(!Reflect.hasField(data,"width"))
-            Reflect.setField(data,"width",100);
-
-        if(!Reflect.hasField(data,"height"))
-            Reflect.setField(data,"height",30);
         
         var checkGroup : ICheckBoxGroup = new CheckBoxGroup(data);
         
@@ -708,7 +647,7 @@ class CoreUIFrameworkPlugin
         
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj && Std.is(displayObj, ComboBox))
+        if (null != displayObj && Std.isOfType(displayObj, ComboBox))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -717,11 +656,6 @@ class CoreUIFrameworkPlugin
         else
         {
             
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",40);
 
             var comboBox : IComboBox = new ComboBox(data);
                         
@@ -740,7 +674,7 @@ class CoreUIFrameworkPlugin
 
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
         
-        if (null != displayObj && Std.is(displayObj, List))
+        if (null != displayObj && Std.isOfType(displayObj, List))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -748,12 +682,7 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",40);
-            
+
             var listBox : IListBox = new ListBox(data);
             
             CoreCommandPlugin.displayUpdate(listBox, data);
@@ -771,7 +700,7 @@ class CoreUIFrameworkPlugin
         
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
         
-        if (null != displayObj && Std.is(displayObj, ItemPane))
+        if (null != displayObj && Std.isOfType(displayObj, ItemPane))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -779,11 +708,6 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-            if(!Reflect.hasField(data,"width"))
-                Reflect.setField(data,"width",100);
-    
-            if(!Reflect.hasField(data,"height"))
-                Reflect.setField(data,"height",40);
             
             var itemPane : IItemPane = new ItemPane(data);
             
@@ -809,15 +733,15 @@ class CoreUIFrameworkPlugin
                 elementClass = getFormClass(Reflect.field(item,"elementClass"));
 
             if(Reflect.hasField(item,"elementClass"))
-                elementParams = Reflect.field(item,"elementParams")
+                elementParams = Reflect.field(item,"elementParams");
 
             if(Reflect.hasField(item,"layoutClass"))
                 layoutClass = getCellLayout(Reflect.field(item,"layoutClass"));
 
             if(Reflect.hasField(item,"layoutClass"))
-                params = Reflect.field(item,"params")
+                params = Reflect.field(item,"params");
 
-            form.addFormElement(Reflect.field(item,"labelName"), Reflect.field(item,"elementName"), elementClass , elementParams , layoutClass , params );
+            formBuilder.addFormElement(Reflect.field(item,"labelName"), Reflect.field(item,"elementName"), elementClass , elementParams , layoutClass , params );
 
         }
 
@@ -825,6 +749,7 @@ class CoreUIFrameworkPlugin
 
     private static function updateGridPane(column:Array<Dynamic>, gridPane:IGridPane ) : Void {
 
+        /*
         for(i in column ... column.length) {
 
             var colData:Dynamic = column[i];
@@ -848,23 +773,23 @@ class CoreUIFrameworkPlugin
             }
                 
         }
-
+        */
 
         
     }
     
     private static function setAlertBox(data : Dynamic) : Void
     {
+        /*
         if (Reflect.hasField(data,"tintAlpha"))
-            Alert.tintAlpha = Reflect.field(data,"tintAlpha") ;
+            Alert.tintAlpha = Reflect.field(data,"tintAlpha");
         
-        if (Reflect.hasField(data,("tintBackgroundColor") )
+        if (Reflect.hasField(data,"tintBackgroundColor"))
             Alert.tintBackgroundColor = Reflect.field(data,"tintBackgroundColor");
         
-        if (data.exists("alignWindowToCenter"))
-        {
-            Alert.alignWindowToCenter = data.alignWindowToCenter;
-        }
+        if (Reflect.hasField(data,"alignWindowToCenter"))
+            Alert.alignWindowToCenter = Reflect.field(data,"alignWindowToCenter");
+        */
     }
     
     
@@ -929,13 +854,43 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
+    private static function alertButtonType(buttonData:Array<String>) : Array<AlertButtonType> {
+
+        var buttonArray:Array<AlertButtonType> = new Array<AlertButtonType>();
+
+        
+        for (i in 0 ... buttonData.length) {
+
+            if(buttonData[i].toUpperCase() == "CANCEL")
+                buttonArray.push(AlertButtonType.CANCEL);
+
+            if(buttonData[i].toUpperCase() == "OK")
+                buttonArray.push(AlertButtonType.OK);
+
+            if(buttonData[i].toUpperCase() == "YES")
+                buttonArray.push(AlertButtonType.YES);
+
+            if(buttonData[i].toUpperCase() == "NO")
+                buttonArray.push(AlertButtonType.NO);
+
+            if(buttonData[i].toUpperCase() == "MAYBE")
+                buttonArray.push(AlertButtonType.MAYBE);
+
+            if(buttonData[i].toUpperCase() == "NONMODAL")
+                buttonArray.push(AlertButtonType.NONMODAL);            
+        }	        
+
+        return buttonArray;
+    }
+
     private static function onAlertButtonClick(event : MouseEvent) : Void
     {
-        if(Std.is(event.currentTarget,DisplayObject))
+        if(Std.isOfType(event.currentTarget,DisplayObject))
         {
             var displayObj:DisplayObject = cast(event.currentTarget, DisplayObject);
 
-            CommandDispatch.dispatch(Alert.TYPE, "click", {button :displayObj.name});
+            //TODO: Fix later
+            //CommandDispatch.dispatch(Alert.TYPE, "click", {button :displayObj.name});
         }
 
     }

@@ -1103,12 +1103,13 @@ class ThemeSystem
             case "ITEMPANE_DEFAULT_ITEM_HEIGHT":
                 UIStyleManager.ITEMPANE_DEFAULT_ITEM_HEIGHT = value;
             
+                /*
             case "ITEMPANE_ICON_LOC_X":
                 UIStyleManager.ITEMPANE_ICON_LOC_X = value;
             
             case "ITEMPANE_ICON_LOC_Y":
                 UIStyleManager.ITEMPANE_ICON_LOC_Y = value;
-            
+            */
             case "ITEMPANE_ITEM_LOC_X":
                 UIStyleManager.ITEMPANE_ITEM_LOC_X = value;
             
@@ -1321,7 +1322,7 @@ class ThemeSystem
             
             case "MENU_BACKGROUND_ALPHA":
                 UIStyleManager.MENU_BACKGROUND_ALPHA = value;
-            
+            /*
             case "MENU_NORMAL_COLOR":
                 UIStyleManager.MENU_NORMAL_COLOR = value;
             
@@ -1387,7 +1388,7 @@ class ThemeSystem
             
             case "MENU_SUB_BORDER_DISABLE_COLOR":
                 UIStyleManager.MENU_SUB_BORDER_DISABLE_COLOR = value;
-            
+            */
             case "MENU_LABEL_TEXT_EMBED":
                 UIStyleManager.MENU_LABEL_TEXT_EMBED = value;
             

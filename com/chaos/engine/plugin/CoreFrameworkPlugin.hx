@@ -274,6 +274,7 @@ class CoreFrameworkPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
+            /*
             var item : Dynamic = Reflect.fields(Reflect.field(data,"item"));
             var newLayer : Sprite = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), Sprite);
             var displayObj : DisplayObject = null;
@@ -289,6 +290,7 @@ class CoreFrameworkPlugin
 
                 return displayObj;
             }
+            */
         }
         
         Debug.print("[CoreFrameworkPlugin::addLayerItem] Unable to add item to layer because of missing name value on data object.");

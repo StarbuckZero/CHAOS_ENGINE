@@ -62,9 +62,9 @@ class JSONReader extends Reader implements IReader
         counter = 0;
         layerCounter = 0;
         
-        var dataObj : Dynamic = Std.is(data, String) ? Json.parse(Std.string(data)) : data;
+        var dataObj : Dynamic = Std.isOfType(data, String) ? Json.parse(Std.string(data)) : data;
         
-        if (Std.isOfType(dataObj, Dynamic) && Reflect.hasField(dataObj,"imges"))
+        if (Std.isOfType(dataObj, Dynamic) && Reflect.hasField(dataObj,"items"))
             list = list.concat( Reflect.field(dataObj,"items"));
         
         loaded = true;
