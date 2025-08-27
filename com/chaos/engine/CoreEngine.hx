@@ -1,6 +1,8 @@
 package com.chaos.engine;
 
 
+import openfl.events.Event;
+import openfl.display.Shape;
 import com.chaos.engine.event.EngineDispatchEvent;
 import com.chaos.engine.loader.JSONReader;
 import com.chaos.engine.loader.classInterface.IReader;
@@ -19,10 +21,17 @@ import openfl.display.Sprite;
 
 class CoreEngine extends Sprite
 {
+    public var useBackground (get, set) : Bool;
+    public var backgroundColor(get, set):Int;
     public var reader(get, never) : IReader;
 
     private var _reader : IReader;
     
+    private var _useBackground : Bool = false;
+
+    private var _backgroundShape : Shape;
+    private var _backgroundColor : Int = 0;
+
     /**
     * Where all UI objects are displayed
     */
@@ -31,17 +40,23 @@ class CoreEngine extends Sprite
     
     private var _currentLayer : Sprite;
     
-    
     public function new()
     {
         super();
         
-        // Extend class and add plugins there
-        
-        
-        if (null != stage)
-            _reader = new JSONReader(stage);
-        
+
+        // Add in background
+        _backgroundShape = new Shape();
+        _backgroundShape.visible = _useBackground;
+
+        stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
+
+        addChild(_backgroundShape);
+
+        //NOTE: Extend class and add plugins there
+
+
+        _reader = new JSONReader(stage);
         _reader.onDataParse = onDataPaser;
         _reader.onError = onPaserError;
         
@@ -52,6 +67,36 @@ class CoreEngine extends Sprite
         
         // For all UI events
         CommandDispatch.addEngineListener(onEngineEvent);
+    }
+
+    private function onResize(event:Event = null) : Void {
+
+        _backgroundShape.graphics.clear();
+        _backgroundShape.graphics.beginFill(_backgroundColor,1);
+        _backgroundShape.graphics.drawRect(0,0,stage.stageWidth,stage.stageHeight);
+        _backgroundShape.graphics.endFill();
+    }
+
+    private function get_backgroundColor():Int {
+        return _backgroundColor;
+     }
+     
+     private function set_backgroundColor(value:Int):Int {
+
+        _backgroundColor = value;
+
+        return _backgroundColor;
+     }    
+
+    private function set_useBackground( value:Bool ) : Bool {
+
+        _backgroundShape.visible = _useBackground = value;
+
+        return _useBackground;
+    }
+
+    private function get_useBackground() : Bool {
+        return _useBackground;
     }
     
     /**
@@ -117,5 +162,27 @@ class CoreEngine extends Sprite
         
         Debug.print("----------------------------------------------------------");
     }
+
+
+    /**
+    * Make it so the background layer is visible
+    * @param	value show or hide background
+    */
+
+	public function setBackground ( value:Bool ) :Void {
+		_useBackground = value;
+        onResize();
+	}    
+
+    /**
+    * Change the color of the background layer
+    * @param	value color of layer
+    */
+
+	public function setBackgroundColor ( value:Int ) :Void {
+		_backgroundColor = value;
+        onResize();
+        
+	}     
 }
 

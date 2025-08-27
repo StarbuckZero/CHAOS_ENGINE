@@ -1,5 +1,6 @@
 package com.chaos.engine.plugin;
 
+import com.chaos.media.event.DisplayImageEvent;
 import com.chaos.engine.CommandDispatch;
 import com.chaos.engine.event.CoreEngineEvent;
 import com.chaos.engine.Global;
@@ -11,7 +12,7 @@ import com.chaos.media.event.DisplayVideoEvent;
 import com.chaos.media.event.SoundStatusEvent;
 import com.chaos.media.classInterface.IPanorama;
 import com.chaos.media.classInterface.ISoundManager;
-import com.chaos.media.Panorama;
+import com.chaos.media.Panorama2D;
 import com.chaos.utils.Debug;
 import com.chaos.media.SoundManager;
 import com.chaos.ui.classInterface.IBaseUI;
@@ -62,35 +63,49 @@ class CoreMediaPlugin
         CommandCentral.addCommand(EngineTypes.SOUND_SEEK, seekSound);
         CommandCentral.addCommand(EngineTypes.SOUND_VOLUME, soundVolume);
         
-        CommandCentral.addCommand(EngineTypes.PANORAMA, createPano);
+        CommandCentral.addCommand(EngineTypes.PANORAMA_2D, createPano);
     }
     
     private static function createPano(data : Dynamic) : Dynamic
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
-        
-        if (displayObj != null && Std.is(displayObj, Panorama))
+        var image : BitmapData = null;
+
+        if (Reflect.hasField(data,"image") && Reflect.field(data,"image") != "") {
+            image = getImage(data);
+        }
+
+        if(image != null)
         {
-            setPano(data, cast(displayObj, Panorama));
+            data.image = image;
+        }
+        
+        
+
+        if (displayObj != null && Std.is(displayObj, Panorama2D))
+        {
+            Debug.print("[CoreMediaPlugin::createPano] setPane.");
+            setPano(data, cast(displayObj, Panorama2D));
 
             return displayObj;
         }
         else
         {
+
+            Debug.print("[CoreMediaPlugin::createPano] createPano!");
+            var image:BitmapData;
+
             if(!Reflect.hasField(data,"width"))
                 Reflect.setField(data,"width", 800);
 
             if(!Reflect.hasField(data,"height"))
                 Reflect.setField(data,"height", 600);
 
-            if (Reflect.hasField(data,"screen"))
+            if (Reflect.hasField(data,"screen") && Reflect.field(data,"screen") != "")
                 Reflect.setField(data,"source", CoreCommandPlugin.getScreen(Reflect.field(data,"screen")));
             
-            if (Reflect.hasField(data,"image"))
-                Reflect.setField(data," image", CoreCommandPlugin.getImage(Reflect.field(data,"image")));            
+            var pano : Panorama2D = new Panorama2D(data);
 
-            var pano : Panorama = new Panorama(data);
-            
             CoreCommandPlugin.displayUpdate(pano, data);
 
             return pano;
@@ -182,8 +197,8 @@ class CoreMediaPlugin
         {
             var autoStart : Bool = Reflect.hasField(data,"autoStart") ? Reflect.field(data,"autoStart") : false;
             var video : DisplayVideo;
-            var buffer : Bool = ((data.exists("buffer"))) ? data.buffer : false;
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name") );
+            var buffer : Bool = (data.exists("buffer")) ? data.buffer : false;
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             
             if (null != displayObj && Std.is(displayObj, DisplayVideo))
@@ -209,7 +224,7 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name"));
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             if (Std.is(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).play();
@@ -226,7 +241,7 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name"));
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             if (Std.is(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).pause();
@@ -243,7 +258,7 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name"));
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             if (Std.is(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).stop();
@@ -260,7 +275,7 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name") && Reflect.hasField(data,"position"))
         {
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name"));
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
 
             if (Std.is(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).netStream.seek(Reflect.field(data,"position"));
@@ -277,7 +292,7 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name") && Reflect.hasField(data,"volume"))
         {
-            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             if (Std.is(displayObj, DisplayVideo))
             {
@@ -319,21 +334,51 @@ class CoreMediaPlugin
     
     private static function displayImage(data : Dynamic) : DisplayImage
     {
-        if ( Reflect.hasField(data,"name") && Reflect.hasField(data,"image") && null != Reflect.field(images, Reflect.field(data,"image")))
+        
+        if ( Reflect.hasField(data,"name"))
         {
-            
-            var displayObj : DisplayObject = Utils.getNestedChild( CoreCommandPlugin.getDisplayObject(data), Reflect.field(data,"name") );
+            Debug.print("[CoreMediaPlugin::displayImage] Image -> " + Reflect.field(data,"image") );
+        
+            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             var displayImage : DisplayImage;
-            
+
+            if(Reflect.hasField(data,"image") && null != Reflect.field(images, Reflect.field(data,"image")))
+            {
+                var image:BitmapData = getImage(data);
+
+                // Check to see if image was found
+                if(image != null) {
+                    
+                    data.image = image;
+
+                    // Add listener if not already on class
+                    data.onBase64Image = onBase64Image;
+
+                    Debug.print("[CoreMediaPlugin::displayImage] Add Event Listener" );
+                }
+            }
+
             // Update or create new image
-            if (null != displayObj && Std.is(displayObj, DisplayImage))
+            if (null != displayObj && Std.is(displayObj, DisplayImage)) 
+            {
                 displayImage = cast(displayObj, DisplayImage);
-            else
+
+                //if(!displayImage.hasEventListener(DisplayImageEvent.IMAGE_LOADED))
+                    //displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);
+
+                CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+
+                CommandDispatch.dispatch("Image", CoreEngineEvent.IMAGE_LOADED, {"name":displayImage.name,"width":displayImage.width,"height":displayImage.height,"item":displayImage});
+            }
+            else 
+            {
                 displayImage = new DisplayImage(data);
-            
+                //displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);    
+            }            
+
             if (null != displayImage)
                 CoreCommandPlugin.displayUpdate(displayImage, data);
-            
+
             return displayImage;
         }
         
@@ -343,8 +388,8 @@ class CoreMediaPlugin
     
     private static function getImage(data : Dynamic) : BitmapData
     {
-        if (Reflect.hasField(data,"name") && Reflect.field(images, Reflect.field(data,"name")))
-            return cast(Reflect.field(images, Std.string(data.name)),DisplayImage).image;
+        if (Reflect.hasField(images, Reflect.field(data,"image")))
+            return Reflect.field(images, Std.string(data.image));
         
         Debug.print("[CoreMediaPlugin::getImage] Couldn't find image " + Reflect.field(data,"image"));
         return null;
@@ -358,7 +403,7 @@ class CoreMediaPlugin
         return false;
     }
     
-    private static function setPano(data : Dynamic, UIObject : Panorama) : Void
+    private static function setPano(data : Dynamic, UIObject : Panorama2D) : Void
     {
         if (Reflect.hasField(data,"screen"))
             Reflect.setField(data,"source", CoreCommandPlugin.getScreen(Reflect.field(data,"screen")));
@@ -370,10 +415,22 @@ class CoreMediaPlugin
     }
 
 
+    private static function onBase64Image(event : Event) {
+
+        var displayImage:DisplayImage = cast(event.currentTarget, DisplayImage);
+
+        Debug.print("[CoreMediaPlugin::onBase64Image]: Decoded -> " + displayImage.name);
+        _eventDispatcher.dispatchEvent(new CoreEngineEvent(CoreEngineEvent.IMAGE_LOADED));
+        CommandDispatch.dispatch("Image", CoreEngineEvent.IMAGE_LOADED, {"name":displayImage.name,"width":displayImage.width,"height":displayImage.height,"item":displayImage});
+        
+    }
+
+
     private static function onImageLoadComplete(event : Event) : Void {
 
         var displayImage:DisplayImage = cast(event.currentTarget, DisplayImage);
 
+        Debug.print("[CoreMediaPlugin::onImageLoadComplete]: Loaded -> " + displayImage.name);
         Reflect.setField(images, displayImage.name, displayImage.image);
         Global.pause = false;
         

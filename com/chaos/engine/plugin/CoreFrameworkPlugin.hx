@@ -247,7 +247,7 @@ class CoreFrameworkPlugin
     
     private static function removeElement(data : Dynamic) : Dynamic
     {
-        if ( Reflect.hasField(data,"name") && Reflect.field(element, Reflect.field(data,"name")) )
+        if (Reflect.hasField(data,"name") && Reflect.field(element, Reflect.field(data,"name")) )
             Reflect.deleteField(element, Reflect.field(data,"name"));
         
         return null;
@@ -259,7 +259,7 @@ class CoreFrameworkPlugin
         if (Reflect.hasField(data,"name"))
         {
             var newLayer : IBaseUI = new BaseUI(data);
-            var displayArea : Sprite  = CoreCommandPlugin.getDisplayObject(data);
+            var displayArea : Sprite  = Global.mainDisplyArea;
             displayArea.addChild(newLayer.displayObject);
             
             return newLayer;
@@ -272,16 +272,18 @@ class CoreFrameworkPlugin
     
     private static function addLayerItem(data : Dynamic) : Dynamic
     {
-        if (Reflect.hasField(data,"name"))
+        if (Reflect.hasField(data,"name") && Reflect.hasField(data,"item"))
         {
-            /*
-            var item : Dynamic = Reflect.fields(Reflect.field(data,"item"));
+            var item : Dynamic = Reflect.field(data,"item");
+            var itemArray:Array<String> = Reflect.fields(item);
             var newLayer : Sprite = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), Sprite);
             var displayObj : DisplayObject = null;
             
             // Run command on item at the root of data object
-            for (index in item)
-                displayObj = CommandCentral.runCommand(index, Reflect.field(item, index) );
+            for (i in 0...itemArray.length)
+            {
+                displayObj = CommandCentral.runCommand(itemArray[i], Reflect.field(item, itemArray[i]) );
+            }
             
             // Add item to the layer
             if (null != displayObj)
@@ -290,7 +292,7 @@ class CoreFrameworkPlugin
 
                 return displayObj;
             }
-            */
+            
         }
         
         Debug.print("[CoreFrameworkPlugin::addLayerItem] Unable to add item to layer because of missing name value on data object.");
@@ -300,9 +302,9 @@ class CoreFrameworkPlugin
     
     private static function removeLayer(data : Dynamic) : DisplayObject
     {
-        var oldLayer : BaseUI = cast(getScreen(data), BaseUI);
+        var oldLayer : BaseUI = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), BaseUI); //cast(getScreen(data), BaseUI);
         
-        // Remove all attached events
+        // Remove all attached events.
         for (i in 0...oldLayer.numChildren)
         {
             var element : DisplayObject = oldLayer.getChildAt(i);

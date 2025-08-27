@@ -51,7 +51,6 @@ class CoreCommandPlugin
         if(Reflect.hasField(data,"displayArea")) 
         {
             return Reflect.field(data,"displayArea");
-            //return cast(Utils.getNestedChild(Global.mainDisplyArea, ),Sprite);
         }
         else 
         {

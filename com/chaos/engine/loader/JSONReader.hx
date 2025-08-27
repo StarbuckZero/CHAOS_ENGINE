@@ -144,9 +144,6 @@ class JSONReader extends Reader implements IReader
 
     }
     
-    
-    
-    
     private function onDataComplete(event : Event) : Void
     {
         try

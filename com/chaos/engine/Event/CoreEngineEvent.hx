@@ -20,6 +20,8 @@ class CoreEngineEvent extends Event
     public static inline var ITEM_LOAD_COMPLETE : String = "item_load_complete";
     public static inline var ITEM_LOAD_FAIL : String = "item_load_fail";
     public static inline var ITEM_CREATED : String = "item_created";
+
+    public static inline var IMAGE_LOADED : String = "image_loaded";
     
     public function new(type : String, bubbles : Bool = false, cancelable : Bool = false)
     {

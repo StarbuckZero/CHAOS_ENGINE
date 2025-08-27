@@ -27,6 +27,7 @@ class EngineTypes
     // UI & Theme Plugin
     public static inline var GET_ITEM : String = "GetItem";
     public static inline var REMOVE_ITEM : String = "RemoveItem";
+    public static inline var UPDATE_ITEM : String = "UpdateItem";
     
     public static inline var LOAD_THEME : String = "LoadTheme";
     public static inline var SET_THEME : String = "SetTheme";
@@ -51,7 +52,7 @@ class EngineTypes
     public static inline var SOUND_SEEK : String = "SoundSeek";
     public static inline var SOUND_VOLUME : String = "SoundVolume";
     
-    public static inline var PANORAMA : String = "Panorama";
+    public static inline var PANORAMA_2D : String = "Panorama2D";
         
     
     // Layouts

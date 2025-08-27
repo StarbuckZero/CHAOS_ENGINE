@@ -1,5 +1,6 @@
 package com.chaos.engine.plugin;
 
+import haxe.Json;
 import haxe.macro.Type.Ref;
 import openfl.display.BitmapData;
 import com.chaos.ui.data.BaseObjectData;
@@ -47,9 +48,18 @@ import com.chaos.ui.ScrollPane;
 import com.chaos.ui.Window;
 import com.chaos.ui.WindowManager;
 import com.chaos.ui.ProgressBar;
+
 import com.chaos.ui.BaseUI;
 import com.chaos.ui.layout.BaseContainer;
 import com.chaos.ui.layout.GridCellLayout;
+
+import com.chaos.mobile.ui.Breadcrumb;
+import com.chaos.mobile.ui.Carousel;
+import com.chaos.mobile.ui.MobileButtonList;
+import com.chaos.mobile.ui.NavigationMenu;
+import com.chaos.mobile.ui.MobileDropDown;
+import com.chaos.mobile.ui.ToggleSwitch;
+
 import com.chaos.ui.classInterface.IRadioButtonGroup;
 import com.chaos.ui.classInterface.IBaseUI;
 import com.chaos.ui.classInterface.IToggleButton;
@@ -65,6 +75,12 @@ import com.chaos.ui.classInterface.ISlider;
 import com.chaos.ui.classInterface.IGridPane;
 import com.chaos.ui.classInterface.IMenu;
 import com.chaos.ui.classInterface.ITabPane;
+
+import com.chaos.mobile.ui.classInterface.IBreadcrumb;
+import com.chaos.mobile.ui.classInterface.IDragContainer;
+import com.chaos.mobile.ui.classInterface.INavigationMenu;
+import com.chaos.mobile.ui.classInterface.IToggleSwitch;
+
 
 import com.chaos.ui.classInterface.IWindow;
 import com.chaos.ui.classInterface.IScrollPane;
@@ -115,35 +131,44 @@ class CoreUIFrameworkPlugin
     // Core UI Classes
     public static function initialize() : Void
     {
-        
-        CommandCentral.addCommand("Button", createButton);  //Event  
-        CommandCentral.addCommand("ToggleButton", createToggleButton);  //Event  
-        CommandCentral.addCommand("RadioButton", createRadioButton);  //Event  
-        CommandCentral.addCommand("CheckBox", createCheckBox);  //Event  
-        CommandCentral.addCommand("ComboBox", createComboBox);  //Event  
-        CommandCentral.addCommand("ListBox", createListBox);  //Event  
-        CommandCentral.addCommand("ItemPane", createItemPane);  //Event  
-        CommandCentral.addCommand("Label", createLabel);  //Event  
-        CommandCentral.addCommand("TextInput", createTextInput);  //Event  
+        // Default UI
+        CommandCentral.addCommand("Button", createButton);
+        CommandCentral.addCommand("ToggleButton", createToggleButton);
+        CommandCentral.addCommand("RadioButton", createRadioButton);
+        CommandCentral.addCommand("CheckBox", createCheckBox);
+        CommandCentral.addCommand("ComboBox", createComboBox);
+        CommandCentral.addCommand("ListBox", createListBox);
+        CommandCentral.addCommand("ItemPane", createItemPane);
+        CommandCentral.addCommand("Label", createLabel);
+        CommandCentral.addCommand("TextInput", createTextInput);
         CommandCentral.addCommand("Alert", createAlertBox);
-        CommandCentral.addCommand("Slider", createSlider);  //Event  
-        CommandCentral.addCommand("GridPane", createGridPane);  //Event  
-        CommandCentral.addCommand("Menu", createMenu);  //Event  
-        CommandCentral.addCommand("TabPane", createTabPane);  //Event  
-        CommandCentral.addCommand("ScrollPane", createScrollPane);  // Not needed  
-        CommandCentral.addCommand("Window", createWindow);  //Event  
-        CommandCentral.addCommand("WindowManager", createWindowManager);  // Not needed  
+        CommandCentral.addCommand("Slider", createSlider);
+        CommandCentral.addCommand("GridPane", createGridPane);
+        CommandCentral.addCommand("Menu", createMenu);
+        CommandCentral.addCommand("TabPane", createTabPane);
+        CommandCentral.addCommand("ScrollPane", createScrollPane);
+        CommandCentral.addCommand("Window", createWindow);
+        CommandCentral.addCommand("WindowManager", createWindowManager);
         CommandCentral.addCommand("ToolTip", updateToolTip);
         CommandCentral.addCommand("ProgressBar", createProgressBar);
         CommandCentral.addCommand("FormBuilder", createForm);
-        
-        // Theme
+
+        // Mobile
+        CommandCentral.addCommand("Breadcrumb", createBreadcrumb);
+        CommandCentral.addCommand("Carousel", createCarousel);
+        CommandCentral.addCommand("ButtonList", createButtonList);
+        CommandCentral.addCommand("NavigationMenu", createNavigationMenu);
+        CommandCentral.addCommand("MobileDropDown", createMobileDropDown);
+        CommandCentral.addCommand("ToggleSwitch", createToggleSwitch);
+
+        // Theme <- Redo to use plugins
         CommandCentral.addCommand(EngineTypes.LOAD_THEME, loadTheme);
         CommandCentral.addCommand(EngineTypes.SET_THEME, setTheme);
         
         // Get Object
         CommandCentral.addCommand(EngineTypes.GET_ITEM, getItem);
         CommandCentral.addCommand(EngineTypes.REMOVE_ITEM, removeItem);
+        CommandCentral.addCommand(EngineTypes.UPDATE_ITEM, updateItem);
         
         // Data
         //CommandCentral.addCommand(EngineTypes.DATA_UPDATE, updateItemData);
@@ -172,6 +197,26 @@ class CoreUIFrameworkPlugin
         return Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
     }
     
+    private static function updateItem(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var objectType : String = "";
+        var itemData : Dynamic = Reflect.field(data,"data");
+
+        // Get type of object
+        for( type in Reflect.fields(itemData)) {
+            Debug.print("[CoreUIFrameworkPlugin::updateItem] UI Object Type: " + type );
+            objectType = type;
+        }
+
+
+        if(objectType != "") {
+            CoreCommandPlugin.setComponentData(Reflect.field(itemData,objectType), cast(displayObj, IBaseUI));
+        }
+
+        return displayObj;
+    }
+     
     private static function removeItem(data : Dynamic) : Dynamic
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
@@ -187,6 +232,151 @@ class CoreUIFrameworkPlugin
             return displayObj.parent.removeChild(displayObj);
         
         return null;
+    }
+
+    private static function createBreadcrumb(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, Breadcrumb))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var breadcrumb : IBreadcrumb = new Breadcrumb(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(breadcrumb, data);
+                        
+            return breadcrumb;
+        }
+        
+        return null;        
+    }
+
+
+    private static function createCarousel(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, Carousel))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var carousel : IBaseContainer = new Carousel(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(carousel, data);
+                        
+            return carousel;
+        }
+        
+        return null;        
+    }
+
+    private static function createButtonList(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, MobileButtonList))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var buttonList : IBaseContainer = new MobileButtonList(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(buttonList, data);
+                        
+            return buttonList;
+        }
+        
+        return null;        
+    }    
+
+    private static function createNavigationMenu(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, Carousel))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var navigationMenu : IBaseContainer = new NavigationMenu(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(navigationMenu, data);
+                        
+            return navigationMenu;
+        }
+        
+        return null;  
+    }
+
+    private static function createMobileDropDown(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, MobileDropDown))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var mobileDropDown : IBaseUI = new MobileDropDown(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(mobileDropDown, data);
+                        
+            return mobileDropDown;
+        }
+        
+        return null;  
+    }
+
+    private static function createToggleSwitch(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        
+        if (null != displayObj && Std.isOfType(displayObj, ToggleSwitch))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+            
+            var toggleSwitch : IBaseUI = new ToggleSwitch(data);
+            
+            // Add to display
+            CoreCommandPlugin.displayUpdate(toggleSwitch, data);
+                        
+            return toggleSwitch;
+        }
+        
+        return null;  
     }
     
     private static function updateToolTip(data : Dynamic) : Dynamic
@@ -389,9 +579,7 @@ class CoreUIFrameworkPlugin
         }
         else
         {
-
-
-            
+   
             var button : IButton = new Button(data);
             
             CommandDispatch.attachEvent(button, MouseEvent.CLICK);
@@ -405,15 +593,26 @@ class CoreUIFrameworkPlugin
     
     private static function createToggleButton(data : Dynamic) : Dynamic
     {
-        
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
 
+        if (displayObj != null && Std.isOfType(displayObj, ToggleButton))
+            {
+                CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+                
+                return displayObj;
+            }
+            else
+            {
+                
+                var toggleBtn : IToggleButton = new ToggleButton(data);
+        
+                CoreCommandPlugin.displayUpdate(toggleBtn, data);
+                CommandDispatch.attachEvent(toggleBtn, MouseEvent.CLICK);
 
-        var toggleBtn : IToggleButton = new ToggleButton(data);
-        
-        CoreCommandPlugin.displayUpdate(toggleBtn, data);
-        CommandDispatch.attachEvent(toggleBtn, MouseEvent.CLICK);
-        
-        return toggleBtn;
+                return toggleBtn;
+            }
+
+            return null;
     }
     
     
@@ -599,25 +798,34 @@ class CoreUIFrameworkPlugin
         
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if (null != displayObj)
+        if (null != displayObj && Std.isOfType(displayObj, RadioButtonGroup))
         {
-            //TODO: Make sure this is no longer the case later.
-            Debug.print("[UIFrameworkPlugin::createRadioButton] Must remove and add back in.");
-            return null;
+            // Remove old stuff
+            cast(displayObj, BaseContainer).removeAll();
+
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
+        }
+        else
+        {
+
+            if(!Reflect.hasField(data,"group"))
+                Reflect.setField(data,"group", Reflect.field(data,"group"));
+            else
+                Reflect.setField(data,"group", "radioButtonGroup");
+    
+            var radioGroup : IRadioButtonGroup = new RadioButtonGroup( data );
+    
+            CoreCommandPlugin.displayUpdate(radioGroup, data);
+            CommandDispatch.attachEvent(radioGroup, Event.CHANGE);
+
+            return radioGroup;
+    
         }
         
         
-        if(!Reflect.hasField(data,"group"))
-            Reflect.setField(data,"group", Reflect.field(data,"group"));
-        else
-            Reflect.setField(data,"group", "radioButtonGroup");
-
-        var radioGroup : IRadioButtonGroup = new RadioButtonGroup( data );
-        
-        CoreCommandPlugin.displayUpdate(radioGroup, data);
-        CommandDispatch.attachEvent(radioGroup, Event.CHANGE);
-        
-        return radioGroup;
+        return null;
     }
     
     private static function createCheckBox(data : Dynamic) : Dynamic
@@ -625,20 +833,28 @@ class CoreUIFrameworkPlugin
         //{"CheckBox":{"name":"checkBoxGroup","group":"checkGroup","width":200,"height":300,"items":[{"name":"check1","text":"Check 1","selected":false},{"name":"check2","text":"Check 2","selected":true},{"name":"check3","text":"Check 3","selected":false}]}}
         
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
-        
-        if (null != displayObj)
+
+        if (null != displayObj && Std.isOfType(displayObj, CheckBoxGroup)) 
         {
-            //TODO: Make sure this is no longer the case later.
-            Debug.print("[UIFrameworkPlugin::createCheckBox] Must remove and add back in.");
-            return null;
+
+            cast(displayObj, BaseContainer).removeAll();
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            
+            return displayObj;
         }
+        else
+        {
+            var checkGroup : ICheckBoxGroup = new CheckBoxGroup(data);
         
-        var checkGroup : ICheckBoxGroup = new CheckBoxGroup(data);
+            CoreCommandPlugin.displayUpdate(checkGroup, data);
+            CommandDispatch.attachEvent(checkGroup, Event.CHANGE);
+            
+            return checkGroup;
+        }
+
+        return null;
         
-        CoreCommandPlugin.displayUpdate(checkGroup, data);
-        CommandDispatch.attachEvent(checkGroup, Event.CHANGE);
-        
-        return checkGroup;
+
     }
     
     private static function createComboBox(data : Dynamic) : Dynamic
@@ -670,11 +886,11 @@ class CoreUIFrameworkPlugin
     
     private static function createListBox(data : Dynamic) : Dynamic
     {
-        // {"List":{"name":"OSDropDown","width":100,"height":20,"items":[{"id":1,"text":"Linux","value":"Linux","selected":false},{"id":2,"text":"Windows","value":"Win","selected":false},{"id":3,"text":"Mac","value":"OSX","selected":false}]}}
+        // {"List":{"name":"OSDropDown","width":100,"height":20,"data":[{"id":1,"text":"Linux","value":"Linux","selected":false},{"id":2,"text":"Windows","value":"Win","selected":false},{"id":3,"text":"Mac","value":"OSX","selected":false}]}}
 
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
         
-        if (null != displayObj && Std.isOfType(displayObj, List))
+        if (null != displayObj && Std.isOfType(displayObj, ListBox))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             
@@ -696,7 +912,7 @@ class CoreUIFrameworkPlugin
     
     private static function createItemPane(data : Dynamic) : Dynamic    
     {
-        // {"ItemPane":{"name":"ImageGallery","width":400,"height":300,"items":[{"id":1,"text":"Photo 1","value":"1","tooltip":"Photo 1","selected":false},{"id":2,"text":"Photo 2","value":"2","tooltip":"Photo 2","selected":false},{"id":3,"text":"Photo 3","tooltip":"Photo 2","value":"3","selected":false}]}}
+        // {"ItemPane":{"name":"ImageGallery","width":400,"height":300,"data":[{"id":1,"text":"Photo 1","value":"1","tooltip":"Photo 1","selected":false},{"id":2,"text":"Photo 2","value":"2","tooltip":"Photo 2","selected":false},{"id":3,"text":"Photo 3","tooltip":"Photo 2","value":"3","selected":false}]}}
         
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
         
