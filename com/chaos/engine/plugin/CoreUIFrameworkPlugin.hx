@@ -221,6 +221,11 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
+        if(displayObj == null)
+            Debug.print("[CoreUIFrameworkPlugin::removeItem] Unable to removed Item: " + Reflect.field(data,"name") );
+
+        
+
         if (Std.isOfType(displayObj, IBaseUI))
             CommandDispatch.removeAllEvents(try cast(displayObj, IBaseUI) catch(e:Dynamic) null);
         
@@ -228,8 +233,13 @@ class CoreUIFrameworkPlugin
         if (Std.isOfType(displayObj, IBaseContainer))
             CoreCommandPlugin.removeContainerEvents(try cast(displayObj, IBaseContainer) catch(e:Dynamic) null);
         
-        if (null != displayObj.parent)
+        if (null != displayObj.parent) {
+            Debug.print("[CoreUIFrameworkPlugin::removeItem] Removed Item: " + Reflect.field(data,"name") );
             return displayObj.parent.removeChild(displayObj);
+        }
+            
+
+        
         
         return null;
     }
@@ -549,18 +559,30 @@ class CoreUIFrameworkPlugin
         
         if (null != displayObj && Std.isOfType(displayObj, ScrollPane))
         {
-            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            // Grab Screen
+            if(Reflect.hasField(data,"screen") && CoreFrameworkPlugin.hasScreen(Reflect.field(data,"screen")))
+            {
+                var screen:BaseUI = cast(CoreCommandPlugin.getScreen(Reflect.field(data,"screen")),BaseUI);
+                cast(displayObj, IBaseContainer).addElement(screen);
+            }
+
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, BaseUI));
             return displayObj;
         }
         else
         {
             
-
-
             var scrollPane : IScrollPane = new ScrollPane(data);
             
             CoreCommandPlugin.displayUpdate(scrollPane, data);
             
+            // Grab Screen
+            if(Reflect.hasField(data,"screen") && CoreFrameworkPlugin.hasScreen(Reflect.field(data,"screen")))
+            {
+                var screen:BaseUI = cast(CoreCommandPlugin.getScreen(Reflect.field(data,"screen")),BaseUI);
+                cast(displayObj, IBaseContainer).addElement(screen);
+            }
+
             return scrollPane;
         }
         

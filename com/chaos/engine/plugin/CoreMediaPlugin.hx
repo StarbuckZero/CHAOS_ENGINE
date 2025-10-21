@@ -363,8 +363,8 @@ class CoreMediaPlugin
             {
                 displayImage = cast(displayObj, DisplayImage);
 
-                //if(!displayImage.hasEventListener(DisplayImageEvent.IMAGE_LOADED))
-                    //displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);
+                if(!displayImage.hasEventListener(DisplayImageEvent.IMAGE_LOADED))
+                    displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);
 
                 CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
@@ -373,7 +373,6 @@ class CoreMediaPlugin
             else 
             {
                 displayImage = new DisplayImage(data);
-                //displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);    
             }            
 
             if (null != displayImage)

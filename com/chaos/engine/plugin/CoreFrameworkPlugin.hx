@@ -204,22 +204,24 @@ class CoreFrameworkPlugin
     {
         if ( Reflect.hasField(data,"name") && !Reflect.hasField(screen, Reflect.field(data,"name")) )
         {
-            
+            var newScreen : IBaseUI = null;
+
             if ( Reflect.hasField(data,"cache") && Reflect.field(data,"cache") )
             {
-                var newScreen : IBaseContainer = buildScreen(data);
+                newScreen = buildScreen(data);
                 
                 if (null != newScreen)
                     Reflect.setField(screenCache, Reflect.field(data,"name"), newScreen);
-
-                Reflect.setField(screen, Reflect.field(data,"name"), data);
-
-                return newScreen;
             }
+
+            Reflect.setField(screen, Reflect.field(data,"name"), data);
+
+            return newScreen;
+
         }
         else
         {
-            Debug.print("[CoreFrameworkPlugin::createScreen] Unable to create new screen! Either doesn't have name value or already in list.");
+            Debug.print("[CoreFrameworkPlugin::createScreen] Unable to create new screen! Either doesn't have name or already in list.");
         }
         
         return null;
@@ -323,7 +325,7 @@ class CoreFrameworkPlugin
         return null;
     }
     
-    private static function getScreen(data : Dynamic) : DisplayObject
+    public static function getScreen(data : Dynamic) : DisplayObject
     {
         if (Reflect.field(screenCache, Reflect.field(data,"name")))
             return Reflect.field(screenCache, Reflect.field(data,"name"));
@@ -335,8 +337,18 @@ class CoreFrameworkPlugin
         
         return null;
     }
+
+    public static function hasScreen(name : String) : Bool
+    {
+        if (Reflect.field(screenCache, name))
+            return true;
+        else if ( Reflect.hasField(screen, name) )
+            return return true;
+        
+        return false;
+    }    
     
-    private static function removeScreen(data : Dynamic) : DisplayObject
+    public static function removeScreen(data : Dynamic) : DisplayObject
     {
         var screen : DisplayObject = null;
         
@@ -359,7 +371,7 @@ class CoreFrameworkPlugin
         return screen;
     }
     
-    private static function getElement(data : Dynamic) : DisplayObject
+    public static function getElement(data : Dynamic) : DisplayObject
     {
         if ( Reflect.hasField(data,"name") && Reflect.hasField(element, Reflect.field(data,"name")))
             return cast(buildElement(Reflect.field(element, Reflect.field(data,"name"))), DisplayObject);
@@ -369,7 +381,7 @@ class CoreFrameworkPlugin
         return null;
     }
     
-    private static function buildScreen(data : Dynamic) : IBaseContainer
+    public static function buildScreen(data : Dynamic) : IBaseUI
     {
 
         if(!Reflect.hasField(data,"width"))
@@ -378,7 +390,9 @@ class CoreFrameworkPlugin
         if(!Reflect.hasField(data,"height"))
             Reflect.setField(data,"height",300);
 
-        var newScreen : IBaseContainer = new BaseContainer(data);
+        Reflect.setField(data,"backgroundAlpha",0);
+        
+        var newScreen : IBaseUI = new BaseUI(data);
         
         // Cache screen
         Reflect.setField(screenCache, Reflect.field(data,"name"), newScreen);
@@ -389,14 +403,13 @@ class CoreFrameworkPlugin
             var items:Array<Dynamic> = Reflect.field(data,"items");
 
             ThreadManager.createTaskManager(EngineTypes.SCREEN, CoreCommandPlugin.getDisplayObject(data));
-            ThreadManager.addTask(EngineTypes.SCREEN, new TaskDataObject(data.name, 0, data.items.length, subThread, [items, newScreen.content]));
+            ThreadManager.addTask(EngineTypes.SCREEN, new TaskDataObject(data.name, 0, data.items.length, subThread, [items, newScreen]));
         }
-        
         
         return newScreen;
     }
     
-    private static function buildElement(data : Dynamic) : IBaseContainer
+    public static function buildElement(data : Dynamic) : IBaseUI
     {
         if(!Reflect.hasField(data,"width"))
             Reflect.setField(data,"width",400);
@@ -405,8 +418,7 @@ class CoreFrameworkPlugin
             Reflect.setField(data,"height",300);
                 
         var items:Array<Dynamic> = Reflect.field(data,"items");
-        var newElement : IBaseContainer = new BaseContainer(data);
-        newElement.background = false;
+        var newElement : IBaseUI = new BaseUI(data);
                 
         // Add items in the background
         ThreadManager.createTaskManager(EngineTypes.ELEMENT, CoreCommandPlugin.getDisplayObject(data));
@@ -460,16 +472,19 @@ class CoreFrameworkPlugin
         
         for (index in Reflect.fields(dataObj))
         {
+             Debug.print("[CoreFrameworkPlugin::subThread] Object -> " + index + ".");
             // Run command long as it's not another screen or layer
             try {
                 
                 if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
                     CommandCentral.runCommand(index, Reflect.field(dataObj, index), cast(displayObj, Sprite));
+                }else {
+                    Debug.print("[CoreFrameworkPlugin::subThread] Couldn't run command " + index + ".");
                 }
             }
             catch (error : Error)
             {
-                Debug.print("[CoreFrameworkPlugin::subThread] Couldn't run command " + index + ".");
+                Debug.print("[CoreFrameworkPlugin::subThread] Error on command " + index + ".");
             }
         }
     }

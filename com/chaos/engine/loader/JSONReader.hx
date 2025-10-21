@@ -64,8 +64,11 @@ class JSONReader extends Reader implements IReader
         
         var dataObj : Dynamic = Std.isOfType(data, String) ? Json.parse(Std.string(data)) : data;
         
+        // Check to see if there is a list of data objects else add the object and hope for the best
         if (Std.isOfType(dataObj, Dynamic) && Reflect.hasField(dataObj,"items"))
             list = list.concat( Reflect.field(dataObj,"items"));
+        else
+            list = list.concat( dataObj );
         
         loaded = true;
         
