@@ -200,7 +200,7 @@ class CoreFrameworkPlugin
 
     
     
-    private static function createScreen(data : Dynamic) : Dynamic
+    public static function createScreen(data : Dynamic) : Dynamic
     {
         if ( Reflect.hasField(data,"name") && !Reflect.hasField(screen, Reflect.field(data,"name")) )
         {
@@ -350,25 +350,26 @@ class CoreFrameworkPlugin
     
     public static function removeScreen(data : Dynamic) : DisplayObject
     {
-        var screen : DisplayObject = null;
+        var removeScreen : DisplayObject = null;
         
         // Remove item out of cache
         if ( Reflect.hasField(screenCache, Reflect.field(data,"name") ) )
         {
-            screen = Reflect.field(screenCache, Reflect.field(data,"name"));
+            removeScreen = Reflect.field(screenCache, Reflect.field(data,"name"));
             
             // Remove out of the display
-            if (null != screen.parent)
-                screen.parent.removeChild(screen);
+            if (null != removeScreen.parent)
+                removeScreen.parent.removeChild(removeScreen);
             
             Reflect.deleteField(screenCache, Reflect.field(data,"name"));
-            screen = null;
+            
         }
         
+        // Remove out of screen
         if ( Reflect.hasField(screen, Reflect.field(data,"name")))
-            Reflect.deleteField(data, Reflect.field(data,"name"));
+            Reflect.deleteField(screen, Reflect.field(data,"name"));
         
-        return screen;
+        return removeScreen;
     }
     
     public static function getElement(data : Dynamic) : DisplayObject

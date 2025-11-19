@@ -214,6 +214,13 @@ class CoreUIFrameworkPlugin
             CoreCommandPlugin.setComponentData(Reflect.field(itemData,objectType), cast(displayObj, IBaseUI));
         }
 
+        // Grab Screen
+        if(Reflect.hasField(itemData,"screen") && CoreFrameworkPlugin.hasScreen(Reflect.field(itemData,"screen")))
+        {
+            var screen:BaseUI = cast(CoreCommandPlugin.getScreen(Reflect.field(itemData,"screen")),BaseUI);
+            cast(displayObj, IBaseContainer).addElement(screen);
+        }        
+
         return displayObj;
     }
      
