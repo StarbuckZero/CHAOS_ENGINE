@@ -61,6 +61,9 @@ class EngineTypes
     public static inline var GRID_CONTAINER : String = "GridContainer";
     public static inline var HORIZONTAL_CONTAINER : String = "HorizontalContainer";
     public static inline var VERTICAL_CONTAINER : String = "VerticalContainer";
+
+    public static inline var CONTAINER_ADD_ITEM : String = "ContainerAddItem";
+    public static inline var CONTAINER_REMOVE_ITEM : String = "ContainerRemoveItem";
     
     public function new()
     {

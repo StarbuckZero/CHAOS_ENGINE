@@ -76,6 +76,11 @@ class CoreFrameworkPlugin
         CommandCentral.addCommand(EngineTypes.GRID_CONTAINER, createGridContainer);
         CommandCentral.addCommand(EngineTypes.HORIZONTAL_CONTAINER, createHorizontalContainer);
         CommandCentral.addCommand(EngineTypes.VERTICAL_CONTAINER, createVerticalContainer);
+
+        // Layout - Remove / Add 
+        CommandCentral.addCommand(EngineTypes.CONTAINER_ADD_ITEM, addItemToContainer);
+        CommandCentral.addCommand(EngineTypes.CONTAINER_REMOVE_ITEM, removeItemFromContainer);
+
     }
     
     private static function createContainer(data : Dynamic) : Dynamic
@@ -103,13 +108,68 @@ class CoreFrameworkPlugin
         }
         
     } 
+
+    private static function addItemToContainer(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var items:Array<Dynamic> = Reflect.field(data,"items");
+
+        if (null != displayObj && Std.isOfType(displayObj, BaseContainer))
+        {
+            var currentContainer : IBaseContainer = cast(displayObj, IBaseContainer);
+            
+            // Loop through items
+            for (i in 0...items.length) {
+
+                // Get type out of object
+                for (index in Reflect.fields(items[i])) {
+
+                    // Run command based on type
+                    var element : IBaseUI = CommandCentral.runCommand(index, Reflect.field(items[i], index));
+
+                    Debug.print("index -> " + index);
+                    Debug.print("item -> " + items[i]);
+
+                    if (null != element)
+                        currentContainer.addElement(element);
+                }
+            }
+                    
+        }
+
+        return displayObj;
+    }
     
+    private static function removeItemFromContainer(data : Dynamic) : Dynamic {
+
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var itemNames:Array<String> = Reflect.field(data,"itemNames");
+
+        var currentContainer : IBaseContainer = cast(displayObj, IBaseContainer);
+        
+        for (i in 0...itemNames.length) {
+            
+            var element : IBaseUI = currentContainer.getElementByName(itemNames[i]);
+            
+            if(null != element)
+                currentContainer.removeElement(element);
+        }
+
+        return displayObj;
+    }
+
     private static function createFitContainer(data : Dynamic) : Dynamic
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
         if (null != displayObj && Std.isOfType(displayObj, FitContainer))
         {
+
+            var currentContainer : IAlignmentContainer = cast(displayObj, FitContainer);
+
+            // Build again based on data
+            buildContentArea(EngineTypes.FIT_CONTAINER, currentContainer, data);
+
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             
             return displayObj;
@@ -449,11 +509,15 @@ class CoreFrameworkPlugin
             try
             {
                 
-                if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index)
+                if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
+
                     var element : IBaseUI = CommandCentral.runCommand(index, Reflect.field(dataObj, index));
+
+                    if (null != element)
+                        contentArea.addElement(element);
+                }
+                                    
                 
-                if (null != element)
-                    contentArea.addElement(element);
             }
             catch (error : Error)
             {
