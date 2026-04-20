@@ -60,6 +60,8 @@ import com.chaos.mobile.ui.NavigationMenu;
 import com.chaos.mobile.ui.MobileDropDown;
 import com.chaos.mobile.ui.ToggleSwitch;
 
+import com.chaos.ui.data.TabPaneObjectData;
+
 import com.chaos.ui.classInterface.IRadioButtonGroup;
 import com.chaos.ui.classInterface.IBaseUI;
 import com.chaos.ui.classInterface.IToggleButton;
@@ -536,27 +538,31 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
-    private static function createTabPane(data : Dynamic) : Dynamic
+    private static function createTabPane(data:Dynamic):Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
-        
+        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+
         if (null != displayObj && Std.isOfType(displayObj, TabPane))
         {
+            var tabPane:TabPane = cast(displayObj, TabPane);
+
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            updateTabPaneScreens(data, tabPane);
+
             return displayObj;
         }
         else
         {
+            var tabPane:TabPane = new TabPane(data);
 
-            var tabPane : ITabPane = new TabPane(data);
-            
-            // Add to display
             CoreCommandPlugin.displayUpdate(tabPane, data);
             CommandDispatch.attachEvent(tabPane, Event.CHANGE);
-            
+
+            updateTabPaneScreens(data, tabPane);
+
             return tabPane;
         }
-        
+
         return null;
     }
     
@@ -1021,6 +1027,98 @@ class CoreUIFrameworkPlugin
         */
 
         
+    }
+
+    private static function updateTabPaneScreens(data:Dynamic, tabPane:TabPane):Void
+    {
+        if (tabPane == null)
+            return;
+
+        // Remove all existing tabs first so deleted tabs/screens
+        // are removed from the AuthoringLayer/runtime too.
+        while (tabPane.buttonArea.numChildren > 0)
+        {
+            tabPane.removeItemAt(0);
+        }
+
+        if (!Reflect.hasField(data, "data"))
+        {
+            tabPane.draw();
+            return;
+        }
+
+        var tabArray:Array<Dynamic> = cast Reflect.field(data, "data");
+
+        for (i in 0...tabArray.length)
+        {
+            var tabItem:Dynamic = tabArray[i];
+
+            var tabText:String = Reflect.hasField(tabItem, "text")
+                ? Std.string(Reflect.field(tabItem, "text"))
+                : "New Tab";
+
+            var tabValue:String = Reflect.hasField(tabItem, "value")
+                ? Std.string(Reflect.field(tabItem, "value"))
+                : tabText;
+
+            var tabSelected:Bool = Reflect.hasField(tabItem, "selected")
+                ? Reflect.field(tabItem, "selected")
+                : false;
+
+            var tabId:Int = Reflect.hasField(tabItem, "id")
+                ? Std.int(Reflect.field(tabItem, "id"))
+                : i;
+
+            var screenDisplay:DisplayObject = null;
+
+            if (Reflect.hasField(tabItem, "screen"))
+            {
+                var screenName:String = Std.string(Reflect.field(tabItem, "screen"));
+
+                if (screenName != "" && CoreFrameworkPlugin.hasScreen(screenName))
+                {
+                    screenDisplay = cast(CoreCommandPlugin.getScreen(screenName), DisplayObject);
+                }
+            }
+
+            var tabDataObj:TabPaneObjectData = cast tabPane.addItem(tabText, screenDisplay);
+
+            if (tabDataObj != null)
+            {
+                tabDataObj.id = tabId;
+                tabDataObj.value = tabValue;
+                tabDataObj.selected = tabSelected;
+            }
+        }
+
+        // Set the active tab after rebuilding
+        if (Reflect.hasField(data, "selectedIndex"))
+        {
+            var selectedIndex:Int = Std.int(Reflect.field(data, "selectedIndex"));
+
+            if (selectedIndex >= 0 && selectedIndex < tabPane.buttonArea.numChildren)
+                tabPane.selectedIndex = selectedIndex;
+        }
+        else
+        {
+            // fallback to the first tab marked selected
+            var foundSelected:Bool = false;
+
+            for (i in 0...tabArray.length)
+            {
+                if (Reflect.hasField(tabArray[i], "selected") && Reflect.field(tabArray[i], "selected") == true)
+                {
+                    tabPane.selectedIndex = i;
+                    foundSelected = true;
+                    break;
+                }
+            }
+
+            if (!foundSelected && tabPane.buttonArea.numChildren > 0)
+                tabPane.selectedIndex = 0;
+        }
+
+        tabPane.draw();
     }
     
     private static function setAlertBox(data : Dynamic) : Void

@@ -127,9 +127,6 @@ class CoreFrameworkPlugin
                     // Run command based on type
                     var element : IBaseUI = CommandCentral.runCommand(index, Reflect.field(items[i], index));
 
-                    Debug.print("index -> " + index);
-                    Debug.print("item -> " + items[i]);
-
                     if (null != element)
                         currentContainer.addElement(element);
                 }
@@ -155,6 +152,7 @@ class CoreFrameworkPlugin
                 currentContainer.removeElement(element);
         }
 
+
         return displayObj;
     }
 
@@ -168,7 +166,8 @@ class CoreFrameworkPlugin
             var currentContainer : IAlignmentContainer = cast(displayObj, FitContainer);
 
             // Build again based on data
-            buildContentArea(EngineTypes.FIT_CONTAINER, currentContainer, data);
+            //buildContentArea(EngineTypes.FIT_CONTAINER, currentContainer, data);
+            addItemToContainer(data);
 
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             
@@ -178,7 +177,7 @@ class CoreFrameworkPlugin
         {
             var fitContainer : IFitContainer = new FitContainer(data);
             
-            buildContentArea(EngineTypes.FIT_CONTAINER, fitContainer, data);
+            buildContentAreaInBackground(EngineTypes.FIT_CONTAINER, fitContainer, data);
                         
             CoreCommandPlugin.displayUpdate(fitContainer, data);
 
@@ -221,6 +220,12 @@ class CoreFrameworkPlugin
         
         if (null != displayObj && Std.isOfType(displayObj, HorizontalContainer))
         {
+            var currentContainer : IAlignmentContainer = cast(displayObj, HorizontalContainer);
+
+            // Build again based on data
+            //buildContentArea(EngineTypes.FIT_CONTAINER, currentContainer, data);
+            addItemToContainer(data);
+
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             return displayObj;
         }
@@ -228,7 +233,7 @@ class CoreFrameworkPlugin
         {
             var hozContainer : IAlignmentContainer = new HorizontalContainer(data);
             
-            buildContentArea(EngineTypes.HORIZONTAL_CONTAINER, hozContainer, data);
+            buildContentAreaInBackground(EngineTypes.HORIZONTAL_CONTAINER, hozContainer, data);
             
             CoreCommandPlugin.displayUpdate(hozContainer, data);
 
@@ -242,6 +247,13 @@ class CoreFrameworkPlugin
         
         if (null != displayObj && Std.isOfType(displayObj, VerticalContainer))
         {
+
+            var currentContainer : IAlignmentContainer = cast(displayObj, VerticalContainer);
+
+            // Build again based on data
+            //buildContentArea(EngineTypes.FIT_CONTAINER, currentContainer, data);
+            addItemToContainer(data);
+
             CoreCommandPlugin.setComponentData(data, cast(displayObj,IBaseUI));
             return displayObj;
         }
@@ -249,7 +261,7 @@ class CoreFrameworkPlugin
         {
             var vertContainer : IAlignmentContainer = new VerticalContainer(data);
             
-            buildContentArea(EngineTypes.VERTICAL_CONTAINER, vertContainer, data);
+            buildContentAreaInBackground(EngineTypes.VERTICAL_CONTAINER, vertContainer, data);
 
             CoreCommandPlugin.displayUpdate(vertContainer, data);
 
@@ -487,8 +499,41 @@ class CoreFrameworkPlugin
         
         return newElement;
     }
+
+    private static function buildContentArea(contentType : String, contentArea : IAlignmentContainer, data : Dynamic) 
+    {
+
+        var items:Array<Dynamic> = Reflect.field(data,"items");
+
+        for (i in 0...items.length) 
+        {
+            var dataObj : Dynamic = items[i];
+
+            for (index in Reflect.fields(dataObj))
+            {
+                // Run command long as it's not another screen or layer
+                try
+                {
+                    
+                    if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
+
+                        var element : IBaseUI = CommandCentral.runCommand(index, Reflect.field(dataObj, index));
+
+                        if (null != element)
+                            contentArea.addElement(element);
+                    }
+                                        
+                    
+                }
+                catch (error : Error)
+                {
+                    Debug.print("[CoreFrameworkPlugin::containerThread] Couldn't run command " + index + ".");
+                }
+            }
+        }
+    }
     
-    private static function buildContentArea(contentType : String, contentArea : IAlignmentContainer, data : Dynamic) : Void
+    private static function buildContentAreaInBackground(contentType : String, contentArea : IAlignmentContainer, data : Dynamic) : Void
     {
         var items:Array<Dynamic> = Reflect.field(data,"items");
 
