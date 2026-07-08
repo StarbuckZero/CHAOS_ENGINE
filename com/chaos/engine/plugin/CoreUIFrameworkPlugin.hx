@@ -121,7 +121,9 @@ import openfl.events.ProgressEvent;
 class CoreUIFrameworkPlugin
 {
     
-    
+    private static inline var DEFAULT_WINDOW_MANAGER_NAME:String = "authoring_window_manager";
+    private static inline var DEFAULT_WINDOW_MANAGER_HOLDER_NAME:String = "authoring_window_manager_holder";
+
     private static var winManagers : Dynamic = {};
     
     private var _eventDispatcher : EventDispatcher = new EventDispatcher();
@@ -199,29 +201,73 @@ class CoreUIFrameworkPlugin
         return Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
     }
     
-    private static function updateItem(data : Dynamic) : Dynamic {
+    private static function updateItem(data:Dynamic):Dynamic
+    {
+        var itemName:String = Reflect.field(data, "name");
+        var itemData:Dynamic = Reflect.field(data, "data");
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
-        var objectType : String = "";
-        var itemData : Dynamic = Reflect.field(data,"data");
+        if (itemData == null)
+            return null;
 
-        // Get type of object
-        for( type in Reflect.fields(itemData)) {
-            Debug.print("[CoreUIFrameworkPlugin::updateItem] UI Object Type: " + type );
-            objectType = type;
-        }
+        var objectType:String = "";
 
-
-        if(objectType != "") {
-            CoreCommandPlugin.setComponentData(Reflect.field(itemData,objectType), cast(displayObj, IBaseUI));
-        }
-
-        // Grab Screen
-        if(Reflect.hasField(itemData,"screen") && CoreFrameworkPlugin.hasScreen(Reflect.field(itemData,"screen")))
+        for (fieldName in Reflect.fields(itemData))
         {
-            var screen:BaseUI = cast(CoreCommandPlugin.getScreen(Reflect.field(itemData,"screen")),BaseUI);
-            cast(displayObj, IBaseContainer).addElement(screen);
+            objectType = fieldName;
+            break;
+        }
+
+        if (objectType == "")
+            return null;
+
+        var componentData:Dynamic = Reflect.field(itemData, objectType);
+        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, itemName);
+
+        if (displayObj == null)
+            return null;
+
+        // -------------------------------------------------
+        // TabPane special update
+        // -------------------------------------------------
+        if (Std.isOfType(displayObj, TabPane))
+        {
+            CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
+            updateTabPaneScreens(componentData, cast(displayObj, TabPane));
+            return displayObj;
+        }
+
+        // -------------------------------------------------
+        // ScrollPane special update
+        // -------------------------------------------------
+        if (Std.isOfType(displayObj, ScrollPane))
+        {
+            if (Reflect.hasField(componentData, "screen") && CoreFrameworkPlugin.hasScreen(Reflect.field(componentData, "screen")))
+            {
+                var screenName:String = Std.string(Reflect.field(componentData, "screen"));
+                var screen:BaseUI = cast(CoreCommandPlugin.getScreen(screenName), BaseUI);
+
+                cast(displayObj, IBaseContainer).removeAll();
+                cast(displayObj, IBaseContainer).addElement(screen);
+            }
+
+            CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
+            return displayObj;
+        }
+
+        // -------------------------------------------------
+        // Window special update
+        // -------------------------------------------------
+        if (Std.isOfType(displayObj, Window))
+        {
+            CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
+            addScreenToWindow(componentData, cast(displayObj, IWindow));
+            return displayObj;
         }        
+
+        // -------------------------------------------------
+        // Default update
+        // -------------------------------------------------
+        CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
 
         return displayObj;
     }
@@ -480,63 +526,129 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
-    private static function createWindowManager(data : Dynamic) : Dynamic
+    private static function createWindowManager(data:Dynamic):Dynamic
     {
+        var managerName:String = Reflect.hasField(data, "name")
+            ? Std.string(Reflect.field(data, "name"))
+            : DEFAULT_WINDOW_MANAGER_NAME;
 
-        var newWindowManagerHolder : IBaseContainer = new BaseContainer(data);
-        var windowManager : WindowManager = new WindowManager();
+        if (Reflect.hasField(winManagers, managerName))
+            return Reflect.field(winManagers, managerName);
+
+        var holderData:Dynamic = {};
+
+        Reflect.setField(holderData, "name", managerName);
+        Reflect.setField(holderData, "width", Reflect.hasField(data, "width") ? Reflect.field(data, "width") : 800);
+        Reflect.setField(holderData, "height", Reflect.hasField(data, "height") ? Reflect.field(data, "height") : 600);
+        Reflect.setField(holderData, "x", Reflect.hasField(data, "x") ? Reflect.field(data, "x") : 0);
+        Reflect.setField(holderData, "y", Reflect.hasField(data, "y") ? Reflect.field(data, "y") : 0);
+        Reflect.setField(holderData, "background", false);
+
+        var newWindowManagerHolder:IBaseContainer = new BaseContainer(holderData);
+        var windowManager:WindowManager = new WindowManager();
+
         windowManager.name = "window_manager";
-        
         newWindowManagerHolder.background = false;
-        
-        Reflect.setField(winManagers, Std.string(newWindowManagerHolder.name), windowManager);
-        
+
+        Reflect.setField(winManagers, managerName, windowManager);
+
         cast(newWindowManagerHolder.content, Sprite).addChildAt(windowManager, 0);
-        
+
+        // This is the important missing part.
+        // The holder needs to actually be added into the selected layer/display.
+        CoreCommandPlugin.displayUpdate(newWindowManagerHolder, holderData);
+
         return windowManager;
     }
     
-    private static function createWindow(data : Dynamic) : Dynamic
+    private static function createWindow(data:Dynamic):Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
-        
+        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+
         if (null != displayObj && Std.isOfType(displayObj, Window))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
-
+            addScreenToWindow(data, cast(displayObj, IWindow));
             return displayObj;
         }
         else
         {
-    
-            var window : IWindow = new Window(data);
-            
-            
-            if (Reflect.hasField(data,"manager"))
-            {
-                if (Reflect.hasField(winManagers, Reflect.field(data,"manager"))) {
-                    var windowManager : WindowManager = Reflect.field(winManagers, Reflect.field(data,"manager"));
-                    windowManager.addChild(window.displayObject);
-                }
-                else
-                    Debug.print("[UIFrameworkPlugin::createWindow] Couldn't find window manager by the name of " + Reflect.field(data,"manager") + ".");
-            }
-            
-            // Add to display
-            CoreCommandPlugin.displayUpdate(window, data);
-            
+            var window:IWindow = new Window(data);
+
+            var windowManager:WindowManager = getOrCreateWindowManager(data);
+
+            if (windowManager != null)
+                windowManager.addChild(window.displayObject);
+            else
+                Debug.print("[CoreUIFrameworkPlugin::createWindow] Unable to create or find WindowManager.");
+
+            addScreenToWindow(data, window);
+
             CommandDispatch.attachEvent(window, WindowEvent.WINDOW_CLOSE_BTN);
             CommandDispatch.attachEvent(window, WindowEvent.WINDOW_MAX_BTN);
             CommandDispatch.attachEvent(window, WindowEvent.WINDOW_MIN_BTN);
             CommandDispatch.attachEvent(window, WindowEvent.WINDOW_RESIZE);
-            
             CommandDispatch.attachEvent(window, MouseEvent.MOUSE_UP);
-            
+
             return window;
         }
-        
+
         return null;
     }
+
+    private static function getOrCreateWindowManager(data:Dynamic):WindowManager
+    {
+        var managerName:String = DEFAULT_WINDOW_MANAGER_NAME;
+
+        if (Reflect.hasField(data, "manager") && Std.string(Reflect.field(data, "manager")) != "")
+            managerName = Std.string(Reflect.field(data, "manager"));
+        else
+            Reflect.setField(data, "manager", managerName);
+
+        if (Reflect.hasField(winManagers, managerName))
+            return Reflect.field(winManagers, managerName);
+
+        var managerData:Dynamic = {};
+
+        Reflect.setField(managerData, "name", managerName);
+
+        if (Reflect.hasField(data, "width"))
+            Reflect.setField(managerData, "width", Reflect.field(data, "width"));
+
+        if (Reflect.hasField(data, "height"))
+            Reflect.setField(managerData, "height", Reflect.field(data, "height"));
+
+        Reflect.setField(managerData, "x", 0);
+        Reflect.setField(managerData, "y", 0);
+
+        return cast(createWindowManager(managerData), WindowManager);
+    }
+
+    private static function addScreenToWindow(data:Dynamic, window:IWindow):Void
+    {
+        if (window == null)
+            return;
+
+        if (!Reflect.hasField(data, "screen"))
+            return;
+
+        var screenName:String = Std.string(Reflect.field(data, "screen"));
+
+        if (screenName == "" || !CoreFrameworkPlugin.hasScreen(screenName))
+            return;
+
+        var screen:BaseUI = cast(CoreCommandPlugin.getScreen(screenName), BaseUI);
+
+        if (window.scrollPane == null)
+        {
+            Debug.print("[CoreUIFrameworkPlugin::addScreenToWindow] Window scrollPane is null.");
+            return;
+        }
+
+        cast(window.scrollPane, IBaseContainer).removeAll();
+        cast(window.scrollPane, IBaseContainer).addElement(screen);
+    }
+
     
     private static function createTabPane(data:Dynamic):Dynamic
     {

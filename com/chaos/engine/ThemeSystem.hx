@@ -343,9 +343,9 @@ class ThemeSystem
             UIStyleManager.BUBBLE_BORDER_COLOR = value;
             return;
         }
-        else if (name == "BUBBLE_BORDER_THINKNESS")
+        else if (name == "BUBBLE_BORDER_THICKNESS")
         {
-            UIStyleManager.BUBBLE_BORDER_THINKNESS = value;
+            UIStyleManager.BUBBLE_BORDER_THICKNESS = value;
             return;
         }
     }
@@ -369,8 +369,8 @@ class ThemeSystem
             case "BUBBLE_BORDER_COLOR":
                 UIStyleManager.BUBBLE_BORDER_COLOR = value;
             
-            case "BUBBLE_BORDER_THINKNESS":
-                UIStyleManager.BUBBLE_BORDER_THINKNESS = value;
+            case "BUBBLE_BORDER_THICKNESS":
+                UIStyleManager.BUBBLE_BORDER_THICKNESS = value;
         }
     }
     
@@ -566,8 +566,8 @@ class ThemeSystem
             case "COMBO_BORDER_COLOR":
                 UIStyleManager.COMBO_BORDER_COLOR = value;
             
-            case "COMBO_BORDER_THINKNESS":
-                UIStyleManager.COMBO_BORDER_THINKNESS = value;
+            case "COMBO_BORDER_THICKNESS":
+                UIStyleManager.COMBO_BORDER_THICKNESS = value;
             
             case "COMBO_TEXT_EMBED":
                 UIStyleManager.COMBO_TEXT_EMBED = value;
@@ -632,8 +632,8 @@ class ThemeSystem
             case "GRID_BORDER_COLOR":
                 UIStyleManager.GRID_BORDER_COLOR = value;
             
-            case "GRID_BORDER_THINKNESS":
-                UIStyleManager.GRID_BORDER_THINKNESS = value;
+            case "GRID_BORDER_THICKNESS":
+                UIStyleManager.GRID_BORDER_THICKNESS = value;
             
             case "GRID_CELL_BORDER_ALPHA":
                 UIStyleManager.GRID_CELL_BORDER_ALPHA = value;
@@ -644,8 +644,8 @@ class ThemeSystem
             case "GRID_CELL_BORDER_COLOR":
                 UIStyleManager.GRID_CELL_BORDER_COLOR = value;
             
-            case "GRID_CELL_BORDER_THINKNESS":
-                UIStyleManager.GRID_CELL_BORDER_THINKNESS = value;
+            case "GRID_CELL_BORDER_THICKNESS":
+                UIStyleManager.GRID_CELL_BORDER_THICKNESS = value;
             
             case "GRID_COLUMN_BUTTON_NORMAL_COLOR":
                 UIStyleManager.GRID_COLUMN_BUTTON_NORMAL_COLOR = value;
@@ -672,8 +672,8 @@ class ThemeSystem
             case "LIST_BORDER_COLOR":
                 UIStyleManager.LIST_BORDER_COLOR = value;
             
-            case "LIST_BORDER_THINKNESS":
-                UIStyleManager.LIST_BORDER_THINKNESS = value;
+            case "LIST_BORDER_THICKNESS":
+                UIStyleManager.LIST_BORDER_THICKNESS = value;
             
             case "LIST_BACKGROUND_COLOR":
                 UIStyleManager.LIST_BACKGROUND_COLOR = value;
@@ -718,8 +718,8 @@ class ThemeSystem
             case "LABEL_BORDER_COLOR":
                 UIStyleManager.LABEL_BORDER_COLOR = value;
             
-            case "LABEL_BORDER_THINKNESS":
-                UIStyleManager.LABEL_BORDER_THINKNESS = value;
+            case "LABEL_BORDER_THICKNESS":
+                UIStyleManager.LABEL_BORDER_THICKNESS = value;
             
             case "LABEL_BACKGROUND":
                 UIStyleManager.LABEL_BACKGROUND = value;
@@ -776,8 +776,8 @@ class ThemeSystem
             case "INPUT_BORDER_COLOR":
                 UIStyleManager.INPUT_BORDER_COLOR = value;
             
-            case "INPUT_BORDER_THINKNESS":
-                UIStyleManager.INPUT_BORDER_THINKNESS = value;
+            case "INPUT_BORDER_THICKNESS":
+                UIStyleManager.INPUT_BORDER_THICKNESS = value;
             
             case "INPUT_TEXT_EMBED":
                 UIStyleManager.INPUT_TEXT_EMBED = value;
@@ -818,8 +818,8 @@ class ThemeSystem
             case "PROGRESSBAR_BORDER_COLOR":
                 UIStyleManager.PROGRESSBAR_BORDER_COLOR = value;
             
-            case "PROGRESSBAR_BORDER_THINKNESS":
-                UIStyleManager.PROGRESSBAR_BORDER_THINKNESS = value;
+            case "PROGRESSBAR_BORDER_THICKNESS":
+                UIStyleManager.PROGRESSBAR_BORDER_THICKNESS = value;
             
             case "PROGRESSBAR_TEXT_EMBED":
                 UIStyleManager.PROGRESSBAR_TEXT_EMBED = value;
@@ -866,8 +866,8 @@ class ThemeSystem
             case "PROGRESS_SLIDER_BORDER_COLOR":
                 UIStyleManager.PROGRESS_SLIDER_BORDER_COLOR = value;
             
-            case "PROGRESS_SLIDER_BORDER_THINKNESS":
-                UIStyleManager.PROGRESS_SLIDER_BORDER_THINKNESS = value;
+            case "PROGRESS_SLIDER_BORDER_THICKNESS":
+                UIStyleManager.PROGRESS_SLIDER_BORDER_THICKNESS = value;
             
             case "PROGRESS_SLIDER_TEXT_EMBED":
                 UIStyleManager.PROGRESS_SLIDER_TEXT_EMBED = value;
@@ -1019,8 +1019,8 @@ class ThemeSystem
             case "SCROLLPANE_BORDER_COLOR":
                 UIStyleManager.SCROLLPANE_BORDER_COLOR = value;
             
-            case "SCROLLPANE_BORDER_THINKNESS":
-                UIStyleManager.SCROLLPANE_BORDER_THINKNESS = value;
+            case "SCROLLPANE_BORDER_THICKNESS":
+                UIStyleManager.SCROLLPANE_BORDER_THICKNESS = value;
             
             case "SCROLLPANE_CONTENT_OFFSET_X":
                 UIStyleManager.SCROLLPANE_CONTENT_OFFSET_X = value;
@@ -1052,8 +1052,8 @@ class ThemeSystem
             case "ITEMPANE_BORDER_COLOR":
                 UIStyleManager.ITEMPANE_BORDER_COLOR = value;
             
-            case "ITEMPANE_BORDER_THINKNESS":
-                UIStyleManager.ITEMPANE_BORDER_THINKNESS = value;
+            case "ITEMPANE_BORDER_THICKNESS":
+                UIStyleManager.ITEMPANE_BORDER_THICKNESS = value;
             
             case "ITEMPANE_ITEM_BORDER_ALPHA":
                 UIStyleManager.ITEMPANE_ITEM_BORDER_ALPHA = value;
@@ -1064,8 +1064,8 @@ class ThemeSystem
             case "ITEMPANE_ITEM_BORDER_COLOR":
                 UIStyleManager.ITEMPANE_ITEM_BORDER_COLOR = value;
             
-            case "ITEMPANE_ITEM_BORDER_THINKNESS":
-                UIStyleManager.ITEMPANE_ITEM_BORDER_THINKNESS = value;
+            case "ITEMPANE_ITEM_BORDER_THICKNESS":
+                UIStyleManager.ITEMPANE_ITEM_BORDER_THICKNESS = value;
             
             case "ITEMPANE_ITEM_NORMAL_COLOR":
                 UIStyleManager.ITEMPANE_ITEM_NORMAL_COLOR = value;
@@ -1176,8 +1176,8 @@ class ThemeSystem
             case "TABPANE_BORDER_COLOR":
                 UIStyleManager.TABPANE_BORDER_COLOR = value;
             
-            case "TABPANE_BORDER_THINKNESS":
-                UIStyleManager.TABPANE_BORDER_THINKNESS = value;
+            case "TABPANE_BORDER_THICKNESS":
+                UIStyleManager.TABPANE_BORDER_THICKNESS = value;
         }
     }
     
@@ -1200,8 +1200,8 @@ class ThemeSystem
             case "TOOLTIP_BORDER_COLOR":
                 UIStyleManager.TOOLTIP_BORDER_COLOR = value;
             
-            case "TOOLTIP_BORDER_THINKNESS":
-                UIStyleManager.TOOLTIP_BORDER_THINKNESS = value;
+            case "TOOLTIP_BORDER_THICKNESS":
+                UIStyleManager.TOOLTIP_BORDER_THICKNESS = value;
             
             case "TOOLTIP_LABEL_TEXT_EMBED":
                 UIStyleManager.TOOLTIP_LABEL_TEXT_EMBED = value;
@@ -1353,8 +1353,8 @@ class ThemeSystem
             case "MENU_BORDER_ALPHA":
                 UIStyleManager.MENU_BORDER_ALPHA = value;
             
-            case "MENU_BORDER_THINKNESS":
-                UIStyleManager.MENU_BORDER_THINKNESS = value;
+            case "MENU_BORDER_THICKNESS":
+                UIStyleManager.MENU_BORDER_THICKNESS = value;
             
             case "MENU_BORDER_NORMAL_COLOR":
                 UIStyleManager.MENU_BORDER_NORMAL_COLOR = value;
@@ -1374,8 +1374,8 @@ class ThemeSystem
             case "MENU_SUB_BORDER":
                 UIStyleManager.MENU_SUB_BORDER = value;
             
-            case "MENU_SUB_BORDER_THINKNESS":
-                UIStyleManager.MENU_SUB_BORDER_THINKNESS = value;
+            case "MENU_SUB_BORDER_THICKNESS":
+                UIStyleManager.MENU_SUB_BORDER_THICKNESS = value;
             
             case "MENU_SUB_BORDER_NORMAL_COLOR":
                 UIStyleManager.MENU_SUB_BORDER_NORMAL_COLOR = value;
