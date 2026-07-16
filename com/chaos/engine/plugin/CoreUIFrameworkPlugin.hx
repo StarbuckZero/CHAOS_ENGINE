@@ -957,10 +957,9 @@ class CoreUIFrameworkPlugin
         else
         {
 
-            if(!Reflect.hasField(data,"group"))
-                Reflect.setField(data,"group", Reflect.field(data,"group"));
-            else
-                Reflect.setField(data,"group", "radioButtonGroup");
+        if (!Reflect.hasField(data, "group") || Reflect.field(data, "group") == null ||Std.string(Reflect.field(data, "group")) == "") {
+            Reflect.setField(data, "group", "radioButtonGroup");
+        }
     
             var radioGroup : IRadioButtonGroup = new RadioButtonGroup( data );
     
