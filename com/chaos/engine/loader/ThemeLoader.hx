@@ -147,6 +147,7 @@ class ThemeLoader
         CommandDispatch.dispatch("ThemeLoader", "fail", {});
         
         urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+        Global.pause = false;
     }
     
     private static function onDataComplete(event : Event) : Void
@@ -157,6 +158,7 @@ class ThemeLoader
             setTheme(Reflect.field(event.target,"data"));
         
         urlLoader.removeEventListener(Event.COMPLETE, onDataComplete);
+        Global.pause = false;
     }
     
     private static function updateStyle(task : ITask, list : Array<Dynamic>) : Void

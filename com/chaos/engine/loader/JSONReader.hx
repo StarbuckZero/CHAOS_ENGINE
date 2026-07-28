@@ -131,7 +131,6 @@ class JSONReader extends Reader implements IReader
             _eventDispatcher.dispatchEvent(new CoreEngineEvent(CoreEngineEvent.DONE));
             
             reset();
-            
             CommandDispatch.dispatch("Reader", CoreEngineEvent.DONE, {});
         }
     }

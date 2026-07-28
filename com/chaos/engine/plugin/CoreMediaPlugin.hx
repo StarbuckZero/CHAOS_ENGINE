@@ -317,7 +317,7 @@ class CoreMediaPlugin
             if (!Reflect.hasField(data,"async") || !Reflect.field(data,"async"))
                 Global.pause = true;
             
-            displayImage.addEventListener(Event.COMPLETE, onImageLoadComplete, false, 0, true);
+            displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onImageLoadComplete, false, 0, true);
             displayImage.addEventListener(IOErrorEvent.IO_ERROR, onImageError, false, 0, true);
             
             displayImage.load(Std.string(Reflect.field(data,"url")));
@@ -353,6 +353,7 @@ class CoreMediaPlugin
 
                     // Add listener if not already on class
                     data.onBase64Image = onBase64Image;
+                    Global.pause = false;
 
                     Debug.print("[CoreMediaPlugin::displayImage] Add Event Listener" );
                 }
@@ -369,6 +370,7 @@ class CoreMediaPlugin
                 CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
 
                 CommandDispatch.dispatch("Image", CoreEngineEvent.IMAGE_LOADED, {"name":displayImage.name,"width":displayImage.width,"height":displayImage.height,"item":displayImage});
+                Global.pause = false;
             }
             else 
             {
@@ -421,6 +423,7 @@ class CoreMediaPlugin
         Debug.print("[CoreMediaPlugin::onBase64Image]: Decoded -> " + displayImage.name);
         _eventDispatcher.dispatchEvent(new CoreEngineEvent(CoreEngineEvent.IMAGE_LOADED));
         CommandDispatch.dispatch("Image", CoreEngineEvent.IMAGE_LOADED, {"name":displayImage.name,"width":displayImage.width,"height":displayImage.height,"item":displayImage});
+        Global.pause = false;
         
     }
 
