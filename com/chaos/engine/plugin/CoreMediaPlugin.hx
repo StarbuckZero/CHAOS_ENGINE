@@ -332,59 +332,188 @@ class CoreMediaPlugin
         return null;
     }
     
-    private static function displayImage(data : Dynamic) : DisplayImage
+    private static function displayImage(data:Dynamic):DisplayImage
     {
-        
-        if ( Reflect.hasField(data,"name"))
+        if (!Reflect.hasField(data, "name"))
         {
-            Debug.print("[CoreMediaPlugin::displayImage] Image -> " + Reflect.field(data,"image") );
-        
-            var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
-            var displayImage : DisplayImage;
+            Debug.print(
+                "[CoreMediaPlugin::displayImage] Couldn't find image " +
+                Reflect.field(data, "image")
+            );
 
-            if(Reflect.hasField(data,"image") && null != Reflect.field(images, Reflect.field(data,"image")))
+            return null;
+        }
+
+        var displayName:String = Std.string(
+            Reflect.field(data, "name")
+        );
+
+        var displayObj:DisplayObject = Utils.getNestedChild(
+            Global.mainDisplyArea,
+            displayName
+        );
+
+        var displayImage:DisplayImage = null;
+        var bitmapData:BitmapData = null;
+
+        Debug.print(
+            "[CoreMediaPlugin::displayImage] DisplayImage -> " +
+            displayName
+        );
+
+        /*
+        * Resolve image key into BitmapData.
+        *
+        * data.image coming from Angular should still be the image name,
+        * not BitmapData.
+        */
+        if (Reflect.hasField(data, "image"))
+        {
+            var imageName:String = Std.string(
+                Reflect.field(data, "image")
+            );
+
+            Debug.print(
+                "[CoreMediaPlugin::displayImage] Image key -> " +
+                imageName
+            );
+
+            if (
+                imageName != null &&
+                imageName != "" &&
+                Reflect.hasField(images, imageName)
+            )
             {
-                var image:BitmapData = getImage(data);
+                bitmapData = Reflect.field(images, imageName);
 
-                // Check to see if image was found
-                if(image != null) {
-                    
-                    data.image = image;
+                Debug.print(
+                    "[CoreMediaPlugin::displayImage] Bitmap found -> " +
+                    imageName
+                );
+            }
+            else
+            {
+                Debug.print(
+                    "[CoreMediaPlugin::displayImage] Bitmap NOT found -> " +
+                    imageName
+                );
+            }
+        }
 
-                    // Add listener if not already on class
-                    data.onBase64Image = onBase64Image;
-                    Global.pause = false;
+        /*
+        * Existing DisplayImage
+        */
+        if (
+            displayObj != null &&
+            Std.isOfType(displayObj, DisplayImage)
+        )
+        {
+            displayImage = cast(displayObj, DisplayImage);
 
-                    Debug.print("[CoreMediaPlugin::displayImage] Add Event Listener" );
+            Debug.print(
+                "[CoreMediaPlugin::displayImage] Updating existing -> " +
+                displayImage.name
+            );
+
+            if (
+                !displayImage.hasEventListener(
+                    DisplayImageEvent.IMAGE_LOADED
+                )
+            )
+            {
+                displayImage.addEventListener(
+                    DisplayImageEvent.IMAGE_LOADED,
+                    onBase64Image,
+                    false,
+                    0,
+                    true
+                );
+            }
+
+            /*
+            * Important:
+            * Don't pass image through generic component updating.
+            */
+            var componentData:Dynamic = {};
+
+            for (field in Reflect.fields(data))
+            {
+                if (field != "image")
+                {
+                    Reflect.setField(
+                        componentData,
+                        field,
+                        Reflect.field(data, field)
+                    );
                 }
             }
 
-            // Update or create new image
-            if (null != displayObj && Std.is(displayObj, DisplayImage)) 
+            CoreCommandPlugin.setComponentData(
+                componentData,
+                cast(displayImage, IBaseUI)
+            );
+
+            /*
+            * Explicitly replace image.
+            */
+            if (bitmapData != null)
             {
-                displayImage = cast(displayObj, DisplayImage);
-
-                if(!displayImage.hasEventListener(DisplayImageEvent.IMAGE_LOADED))
-                    displayImage.addEventListener(DisplayImageEvent.IMAGE_LOADED, onBase64Image, false, 0, true);
-
-                CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
-
-                CommandDispatch.dispatch("Image", CoreEngineEvent.IMAGE_LOADED, {"name":displayImage.name,"width":displayImage.width,"height":displayImage.height,"item":displayImage});
-                Global.pause = false;
+                displayImage.setImage(bitmapData);
             }
-            else 
+            else
             {
-                displayImage = new DisplayImage(data);
-            }            
+                displayImage.draw();
+            }
 
-            if (null != displayImage)
-                CoreCommandPlugin.displayUpdate(displayImage, data);
+            Global.pause = false;
 
             return displayImage;
         }
-        
-        Debug.print("[CoreMediaPlugin::displayImage] Couldn't find image " + Reflect.field(data,"image"));
-        return null;
+
+        /*
+        * New DisplayImage
+        */
+        var newData:Dynamic = {};
+
+        for (field in Reflect.fields(data))
+        {
+            if (field != "image")
+            {
+                Reflect.setField(
+                    newData,
+                    field,
+                    Reflect.field(data, field)
+                );
+            }
+        }
+
+        if (bitmapData != null)
+        {
+            Reflect.setField(
+                newData,
+                "image",
+                bitmapData
+            );
+        }
+
+        displayImage = new DisplayImage(newData);
+
+        displayImage.addEventListener(
+            DisplayImageEvent.IMAGE_LOADED,
+            onBase64Image,
+            false,
+            0,
+            true
+        );
+
+        CoreCommandPlugin.displayUpdate(
+            displayImage,
+            newData
+        );
+
+        Global.pause = false;
+
+        return displayImage;
     }
     
     private static function getImage(data : Dynamic) : BitmapData
