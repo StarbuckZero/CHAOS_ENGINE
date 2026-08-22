@@ -401,6 +401,9 @@ class ThemeSystem
             
             case "BUTTON_TEXT_COLOR":
                 UIStyleManager.BUTTON_TEXT_COLOR = value;
+
+            case "BUTTON_TEXT_DISABLE_COLOR":
+                UIStyleManager.BUTTON_TEXT_DISABLE_COLOR = value;
             
             case "BUTTON_TEXT_SIZE":
                 UIStyleManager.BUTTON_TEXT_SIZE = value;
