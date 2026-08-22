@@ -29,6 +29,9 @@ class ThemeSystem
             uiList = UIBitmapManager.getUIElementNameList();
         
         var UITypeElement : String = style.substring(0, style.indexOf("_"));
+
+        if (UITypeElement.toUpperCase() == "COMBO")
+            UITypeElement = "ComboBox";
                     
         for (i in 0...uiList.length)
         {
@@ -62,7 +65,7 @@ class ThemeSystem
         {
             setBubbleStyle(name, value);
         }
-        else if (name.indexOf("BUTTON_") != -1)
+        else if (name.indexOf("BUTTON_") == 0)
         {
             setButtonStyle(name, value);
         }
@@ -546,68 +549,7 @@ class ThemeSystem
     
     public static function setComboStyle(name : String, value : Dynamic) : Void
     {
-        switch (name)
-        {
-            case "COMBO_BUTTON_NORMAL_COLOR":
-                UIStyleManager.COMBO_BUTTON_NORMAL_COLOR = value;
-            
-            case "COMBO_BUTTON_OVER_COLOR":
-                UIStyleManager.COMBO_BUTTON_OVER_COLOR = value;
-            
-            case "COMBO_BUTTON_DOWN_COLOR":
-                UIStyleManager.COMBO_BUTTON_DOWN_COLOR = value;
-            
-            case "COMBO_BUTTON_DISABLE_COLOR":
-                UIStyleManager.COMBO_BUTTON_DISABLE_COLOR = value;
-            
-            case "COMBO_BORDER_ALPHA":
-                UIStyleManager.COMBO_BORDER_ALPHA = value;
-            
-            case "COMBO_BORDER":
-                UIStyleManager.COMBO_BORDER = value;
-            
-            case "COMBO_BORDER_COLOR":
-                UIStyleManager.COMBO_BORDER_COLOR = value;
-            
-            case "COMBO_BORDER_THICKNESS":
-                UIStyleManager.COMBO_BORDER_THICKNESS = value;
-            
-            case "COMBO_TEXT_EMBED":
-                UIStyleManager.COMBO_TEXT_EMBED = value;
-            
-            case "COMBO_TEXT_FONT":
-                UIStyleManager.COMBO_TEXT_FONT = value;
-            
-            case "COMBO_TEXT_COLOR":
-                UIStyleManager.COMBO_TEXT_COLOR = value;
-            
-            case "COMBO_TEXT_BOLD":
-                UIStyleManager.COMBO_TEXT_BOLD = value;
-            
-            case "COMBO_TEXT_ITALIC":
-                UIStyleManager.COMBO_TEXT_ITALIC = value;
-            
-            case "COMBO_TEXT_SIZE":
-                UIStyleManager.COMBO_TEXT_SIZE = value;
-            
-            case "COMBO_TEXT_ALIGN":
-                UIStyleManager.COMBO_TEXT_ALIGN = value;
-            
-            case "COMBO_TEXT_OVER_COLOR":
-                UIStyleManager.COMBO_TEXT_OVER_COLOR = value;
-            
-            case "COMBO_TEXT_DOWN_COLOR":
-                UIStyleManager.COMBO_TEXT_DOWN_COLOR = value;
-            
-            case "COMBO_TEXT_NORMAL_BACKGROUND_COLOR":
-                UIStyleManager.COMBO_TEXT_NORMAL_BACKGROUND_COLOR = value;
-            
-            case "COMBO_TEXT_OVER_BACKGROUND_COLOR":
-                UIStyleManager.COMBO_TEXT_OVER_BACKGROUND_COLOR = value;
-            
-            case "COMBO_TEXT_DOWN_BACKGROUND_COLOR":
-                UIStyleManager.COMBO_TEXT_DOWN_BACKGROUND_COLOR = value;
-        }
+        UIStyleManager.setStyle(name, value);
     }
     
     public static function setGridStyle(name : String, value : Dynamic) : Void
