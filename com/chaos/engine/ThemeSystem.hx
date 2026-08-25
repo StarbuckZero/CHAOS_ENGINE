@@ -4,6 +4,7 @@ import openfl.display.BitmapData;
 import openfl.events.Event;
 import com.chaos.ui.UIStyleManager;
 import com.chaos.ui.UIBitmapManager;
+import com.chaos.ui.UIBitmapManager.UIBitmapType;
 import com.chaos.media.DisplayImage;
 
 /**
@@ -25,21 +26,58 @@ class ThemeSystem
     
     public static function setBitmap(style : String, image:BitmapData) : Void
     {
-        if (null == uiList)
-            uiList = UIBitmapManager.getUIElementNameList();
-        
-        var UITypeElement : String = style.substring(0, style.indexOf("_"));
+        if (style == null || style == "" || image == null)
+            return;
 
-        if (UITypeElement.toUpperCase() == "COMBO")
-            UITypeElement = "ComboBox";
-                    
-        for (i in 0...uiList.length)
-        {
-            if (Std.string(uiList[i]).toUpperCase() == UITypeElement.toUpperCase())
-                UIBitmapManager.setUIElement(uiList[i], style.toLowerCase(), image);
+        var key = style.toLowerCase();
+        var bitmapType:Null<UIBitmapType> = null;
+
+        if (key.indexOf("alignment_base_container_") == 0) bitmapType = UIBitmapType.AlignmentBaseContainer;
+        else if (key.indexOf("base_container_") == 0) bitmapType = UIBitmapType.BaseContainer;
+        else if (key.indexOf("drag_container_") == 0) bitmapType = UIBitmapType.DragContainer;
+        else if (key.indexOf("fit_container_") == 0) bitmapType = UIBitmapType.FitContainer;
+        else if (key.indexOf("form_builder_") == 0) bitmapType = UIBitmapType.FormBuilder;
+        else if (key.indexOf("grid_container_") == 0) bitmapType = UIBitmapType.GridContainer;
+        else if (key.indexOf("horizontal_container_") == 0) bitmapType = UIBitmapType.HorizontalContainer;
+        else if (key.indexOf("mobile_button_list_") == 0) bitmapType = UIBitmapType.MobileButtonList;
+        else if (key.indexOf("navigation_menu_") == 0) bitmapType = UIBitmapType.NavigationMenu;
+        else if (key.indexOf("vertical_container_") == 0) bitmapType = UIBitmapType.VerticalContainer;
+        else if (key.indexOf("progress_slider_") == 0) bitmapType = UIBitmapType.ProgressSlider;
+        else {
+            var separator = key.indexOf("_");
+            var prefix = separator == -1 ? key : key.substring(0, separator);
+            bitmapType = switch (prefix) {
+                case "accordion": UIBitmapType.Accordion;
+                case "alert": UIBitmapType.Alert;
+                case "breadcrumb": UIBitmapType.Breadcrumb;
+                case "bubble": UIBitmapType.Bubble;
+                case "button": UIBitmapType.Button;
+                case "canvas": UIBitmapType.Canvas;
+                case "carousel": UIBitmapType.Carousel;
+                case "checkbox": UIBitmapType.CheckBox;
+                case "combo": UIBitmapType.ComboBox;
+                case "grid": UIBitmapType.GridPane;
+                case "item", "itempane": UIBitmapType.ItemPane;
+                case "label": UIBitmapType.Label;
+                case "list": UIBitmapType.ListBox;
+                case "menu": UIBitmapType.Menu;
+                case "progress": UIBitmapType.ProgressBar;
+                case "radiobutton": UIBitmapType.RadioButton;
+                case "scrollbar": UIBitmapType.ScrollBar;
+                case "scrollpane": UIBitmapType.ScrollPane;
+                case "slider": UIBitmapType.Slider;
+                case "tabpane": UIBitmapType.TabPane;
+                case "textinput": UIBitmapType.TextInput;
+                case "togglebutton": UIBitmapType.ToggleButton;
+                case "tooltip": UIBitmapType.ToolTip;
+                case "window": UIBitmapType.Window;
+                default: null;
+            };
         }
+
+        if (bitmapType != null)
+            UIBitmapManager.setUIElement(bitmapType, key, image);
     }
-    
     /**
     * Update all bitmaps
     */
@@ -55,88 +93,10 @@ class ThemeSystem
     
     public static function setStyle(name : String, value : Dynamic) : Void
     {
-        name = name.toUpperCase();
-        
-        if (name.indexOf("ALERT_") != -1)
-        {
-            setAlertStyle(name, value);
-        }
-        else if (name.indexOf("BUBBLE_") != -1)
-        {
-            setBubbleStyle(name, value);
-        }
-        else if (name.indexOf("BUTTON_") == 0)
-        {
-            setButtonStyle(name, value);
-        }
-        else if (name.indexOf("CHECKBOX_") != -1)
-        {
-            setCheckBoxStyle(name, value);
-        }
-        else if (name.indexOf("RADIOBUTTON_") != -1)
-        {
-            setRadioStyle(name, value);
-        }
-        else if (name.indexOf("COMBO_") != -1)
-        {
-            setComboStyle(name, value);
-        }
-        else if (name.indexOf("GRID_") != -1)
-        {
-            setGridStyle(name, value);
-        }
-        else if (name.indexOf("LIST_") != -1)
-        {
-            setListStyle(name, value);
-        }
-        else if (name.indexOf("LABEL_") != -1)
-        {
-            setLabelStyle(name, value);
-        }
-        else if (name.indexOf("INPUT_") != -1)
-        {
-            setInputStyle(name, value);
-        }
-        else if (name.indexOf("PROGRESSBAR_") != -1)
-        {
-            setProgressBarStyle(name, value);
-        }
-        else if (name.indexOf("PROGRESS_SLIDER_") != -1)
-        {
-            setProgressSliderStyle(name, value);
-        }
-        else if (name.indexOf("SCROLLBAR_") != -1)
-        {
-            setScrollBarStyle(name, value);
-        }
-        else if (name.indexOf("SLIDER_") != -1)
-        {
-            setSliderStyle(name, value);
-        }
-        else if (name.indexOf("SCROLLPANE_") != -1)
-        {
-            setScrollPaneStyle(name, value);
-        }
-        else if (name.indexOf("ITEMPANE_") != -1)
-        {
-            setItemPaneStyle(name, value);
-        }
-        else if (name.indexOf("TABPANE_") != -1)
-        {
-            setTabPaneStyle(name, value);
-        }
-        else if (name.indexOf("TOOLTIP_") != -1)
-        {
-            setToolTipStyle(name, value);
-        }
-        else if (name.indexOf("WINDOW_") != -1)
-        {
-            setWindowStyle(name, value);
-        }
-        else if (name.indexOf("MENU_") != -1)
-        {
-            setMenuStyle(name, value);
-        }
+        if (name == null || name == "")
+            return;
+
+        UIStyleManager.setStyle(name.toUpperCase(), value);
     }
     
     public static function setAlertStyle(name : String, value : Dynamic) : Void
