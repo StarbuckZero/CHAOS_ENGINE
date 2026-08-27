@@ -526,14 +526,31 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
+    private static function getAttachedWindowManager(managerName:String):WindowManager
+    {
+        if (!Reflect.hasField(winManagers, managerName))
+            return null;
+
+        var windowManager:WindowManager = Reflect.field(winManagers, managerName);
+
+        if (windowManager != null && Global.mainDisplyArea != null && Global.mainDisplyArea.contains(windowManager))
+            return windowManager;
+
+        // Preview replacement removes the holder, so discard its detached cached manager.
+        Reflect.deleteField(winManagers, managerName);
+        return null;
+    }
+
     private static function createWindowManager(data:Dynamic):Dynamic
     {
         var managerName:String = Reflect.hasField(data, "name")
             ? Std.string(Reflect.field(data, "name"))
             : DEFAULT_WINDOW_MANAGER_NAME;
 
-        if (Reflect.hasField(winManagers, managerName))
-            return Reflect.field(winManagers, managerName);
+        var attachedWindowManager:WindowManager = getAttachedWindowManager(managerName);
+
+        if (attachedWindowManager != null)
+            return attachedWindowManager;
 
         var holderData:Dynamic = {};
 
@@ -578,7 +595,7 @@ class CoreUIFrameworkPlugin
             var windowManager:WindowManager = getOrCreateWindowManager(data);
 
             if (windowManager != null)
-                windowManager.addChild(window.displayObject);
+                windowManager.addWindow(cast(window, Window));
             else
                 Debug.print("[CoreUIFrameworkPlugin::createWindow] Unable to create or find WindowManager.");
 
@@ -605,8 +622,10 @@ class CoreUIFrameworkPlugin
         else
             Reflect.setField(data, "manager", managerName);
 
-        if (Reflect.hasField(winManagers, managerName))
-            return Reflect.field(winManagers, managerName);
+        var attachedWindowManager:WindowManager = getAttachedWindowManager(managerName);
+
+        if (attachedWindowManager != null)
+            return attachedWindowManager;
 
         var managerData:Dynamic = {};
 
