@@ -147,6 +147,7 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("TextInput", createTextInput);
         CommandCentral.addCommand("Alert", createAlertBox);
         CommandCentral.addCommand("Slider", createSlider);
+        CommandCentral.addCommand("ScrollBar", createScrollBar);
         CommandCentral.addCommand("GridPane", createGridPane);
         CommandCentral.addCommand("Menu", createMenu);
         CommandCentral.addCommand("TabPane", createTabPane);
@@ -866,6 +867,28 @@ class CoreUIFrameworkPlugin
             return slider;
         }
         
+        return null;
+    }
+
+    private static function createScrollBar(data : Dynamic) : Dynamic
+    {
+        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+
+        if (null != displayObj && Std.isOfType(displayObj, ScrollBar))
+        {
+            CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+
+            return displayObj;
+        }
+        else
+        {
+            var scrollBar : IScrollBar = new ScrollBar(data);
+
+            CoreCommandPlugin.displayUpdate(scrollBar, data);
+
+            return scrollBar;
+        }
+
         return null;
     }
     
