@@ -993,6 +993,7 @@ class CoreUIFrameworkPlugin
             cast(displayObj, BaseContainer).removeAll();
 
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            cast(displayObj, IBaseUI).draw();
             
             return displayObj;
         }
@@ -1027,6 +1028,7 @@ class CoreUIFrameworkPlugin
 
             cast(displayObj, BaseContainer).removeAll();
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            cast(displayObj, IBaseUI).draw();
             
             return displayObj;
         }
@@ -1081,6 +1083,7 @@ class CoreUIFrameworkPlugin
         if (null != displayObj && Std.isOfType(displayObj, ListBox))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            cast(displayObj, IBaseUI).draw();
             
             return displayObj;
         }
@@ -1107,6 +1110,7 @@ class CoreUIFrameworkPlugin
         if (null != displayObj && Std.isOfType(displayObj, ItemPane))
         {
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
+            cast(displayObj, IBaseUI).draw();
             
             return displayObj;
         }

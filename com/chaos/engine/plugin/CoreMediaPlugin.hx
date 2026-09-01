@@ -25,7 +25,6 @@ import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.display.Sprite;
 import openfl.display.DisplayObject;
-import openfl.media.SoundTransform;
 
 /**
 * ...
@@ -195,13 +194,11 @@ class CoreMediaPlugin
     {
         if (Reflect.hasField(data,"name"))
         {
-            var autoStart : Bool = Reflect.hasField(data,"autoStart") ? Reflect.field(data,"autoStart") : false;
             var video : DisplayVideo;
-            var buffer : Bool = (data.exists("buffer")) ? data.buffer : false;
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
             
-            if (null != displayObj && Std.is(displayObj, DisplayVideo))
+            if (null != displayObj && Std.isOfType(displayObj, DisplayVideo))
             {
                 video = cast(displayObj, DisplayVideo);
                 video.setComponentData(data);
@@ -226,7 +223,7 @@ class CoreMediaPlugin
         {
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
-            if (Std.is(displayObj, DisplayVideo))
+            if (displayObj != null && Std.isOfType(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).play();
         }
         else
@@ -243,7 +240,7 @@ class CoreMediaPlugin
         {
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
-            if (Std.is(displayObj, DisplayVideo))
+            if (displayObj != null && Std.isOfType(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).pause();
         }
         else
@@ -260,7 +257,7 @@ class CoreMediaPlugin
         {
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
-            if (Std.is(displayObj, DisplayVideo))
+            if (displayObj != null && Std.isOfType(displayObj, DisplayVideo))
                 cast(displayObj, DisplayVideo).stop();
         }
         else
@@ -277,8 +274,14 @@ class CoreMediaPlugin
         {
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
 
-            if (Std.is(displayObj, DisplayVideo))
-                cast(displayObj, DisplayVideo).netStream.seek(Reflect.field(data,"position"));
+            if (displayObj != null && Std.isOfType(displayObj, DisplayVideo))
+            {
+                var video:DisplayVideo = cast(displayObj, DisplayVideo);
+                var position:Float = Std.parseFloat(Std.string(Reflect.field(data,"position")));
+
+                if (video.netStream != null && !Math.isNaN(position))
+                    video.netStream.seek(position);
+            }
         }
         else
         {
@@ -294,10 +297,13 @@ class CoreMediaPlugin
         {
             var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
             
-            if (Std.is(displayObj, DisplayVideo))
+            if (displayObj != null && Std.isOfType(displayObj, DisplayVideo))
             {
-                var newVolume : SoundTransform = new SoundTransform( Reflect.field(data,"volume") / 100);
-                cast(displayObj, DisplayVideo).netStream.soundTransform = newVolume;
+                var video:DisplayVideo = cast(displayObj, DisplayVideo);
+                var volume:Float = Std.parseFloat(Std.string(Reflect.field(data,"volume")));
+
+                if (!Math.isNaN(volume))
+                    video.volume = volume;
             }
         }
         else
