@@ -43,6 +43,7 @@ class CoreMediaPlugin
     
     public static function initialize() : Void
     {
+        CommandCentral.addPluginName("CoreMediaPlugin", 1.0);
         CommandCentral.addCommand(EngineTypes.ADD_IMAGE, addImage);
         CommandCentral.addCommand(EngineTypes.REMOVE_IMAGE, removeImage);
         CommandCentral.addCommand(EngineTypes.GET_IMAGE, getImage);
@@ -115,17 +116,19 @@ class CoreMediaPlugin
     
     private static function loadSound(data : Dynamic) : Dynamic
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if (Reflect.hasField(data,"url") && Reflect.hasField(data,"name"))
         {
             var autoStart : Bool = Reflect.field(data,"autoStart") ? Reflect.field(data,"autoStart") : false;
             
-            if (Reflect.hasField(data,"async") || !Reflect.field(data,"async"))
+            if (Reflect.field(data,"async") == false && manager == soundManager)
             {
-                soundManager.addEventListener(SoundStatusEvent.SOUND_LOADED, onSoundLoad);
+                manager.addEventListener(SoundStatusEvent.SOUND_LOADED, onSoundLoad);
+                manager.addEventListener(SoundStatusEvent.SOUND_ERROR, onSoundLoad);
                 Global.pause = true;
             }
             
-            soundManager.load( Reflect.field(data,"name"), Reflect.field(data,"url"), autoStart);
+            manager.load( Reflect.field(data,"name"), Reflect.field(data,"url"), autoStart, Reflect.field(data,"repeatSound") == true);
         }
         else
         {
@@ -137,8 +140,9 @@ class CoreMediaPlugin
     
     private static function playSound(data : Dynamic) : Dynamic
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if (Reflect.hasField(data,"name"))
-            soundManager.playSound(Reflect.field(data,"name"));
+            manager.playSound(Reflect.field(data,"name"));
         else
             Debug.print("[CoreMediaPlugin::playSound] Sound was not found.");
 
@@ -147,8 +151,9 @@ class CoreMediaPlugin
     
     private static function pauseSound(data : Dynamic) : Dynamic
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if (Reflect.hasField(data,"name"))
-            soundManager.pauseSound(Reflect.field(data,"name"));
+            manager.pauseSound(Reflect.field(data,"name"));
         else
             Debug.print("[CoreMediaPlugin::pauseSound] Sound was not found.");
 
@@ -157,8 +162,9 @@ class CoreMediaPlugin
     
     private static function stopSound(data : Dynamic) : Dynamic
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if (Reflect.hasField(data,"name"))
-            soundManager.stopSound(Reflect.field(data,"name"));
+            manager.stopSound(Reflect.field(data,"name"));
         else
             Debug.print("[CoreMediaPlugin::stopSound] Sound was not found.");
 
@@ -169,8 +175,9 @@ class CoreMediaPlugin
     
     private static function seekSound(data : Dynamic) : Dynamic
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if (Reflect.hasField(data,"name") && Reflect.hasField(data,"position"))
-            soundManager.setPosition( Reflect.field(data,"name"), Reflect.field(data,"position") );
+            manager.setPosition( Reflect.field(data,"name"), Reflect.field(data,"position") );
         else
             Debug.print("[CoreMediaPlugin::seekSound] Sound was not found.");
 
@@ -179,9 +186,10 @@ class CoreMediaPlugin
     
     private static function soundVolume(data : Dynamic) : Bool
     {
+        var manager:ISoundManager = Std.isOfType(Reflect.field(data,"_soundManager"), SoundManager) ? cast Reflect.field(data,"_soundManager") : soundManager;
         if ( Reflect.hasField(data,"name") && Reflect.hasField(data,"volume") )
         {
-            soundManager.setVolume(Reflect.field(data,"name"), Reflect.field(data,"volume"));
+            manager.setVolume(Reflect.field(data,"name"), Reflect.field(data,"volume"));
             return true;
         }
         else
@@ -586,6 +594,7 @@ class CoreMediaPlugin
 
         Global.pause = false;
         soundManager.removeEventListener(SoundStatusEvent.SOUND_LOADED, onSoundLoad);
+        soundManager.removeEventListener(SoundStatusEvent.SOUND_ERROR, onSoundLoad);
             
         CommandDispatch.dispatch("Sound", SoundStatusEvent.SOUND_LOADED, {});
     }

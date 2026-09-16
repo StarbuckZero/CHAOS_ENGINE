@@ -21,6 +21,7 @@ class EventPlugin {
         commandAdapters.remove(Json.stringify([plugin, command]));
     }
 
+    public var audio(default, null):EventAudio = new EventAudio();
     public var enabled:Bool = true;
     public var report:String->Void;
     public var afterAction:Void->Void;
@@ -31,6 +32,7 @@ class EventPlugin {
 
     public function new(root:DisplayObjectContainer) {
         this.root = root;
+        audio.report = function(message) report(message);
         report = function(message) { trace(message); };
     }
 
@@ -58,7 +60,7 @@ class EventPlugin {
         clear();
     }
 
-    public function dispose():Void { clear(); enabled = false; root = null; afterAction = null; }
+    public function dispose():Void { audio.dispose(); clear(); enabled = false; root = null; afterAction = null; }
 
     private function remove(key:String):Void {
         var entries = listeners.get(key);
@@ -143,6 +145,10 @@ class EventPlugin {
         for (entry in ordered) {
             var action = entry.action;
             try {
+                if (action.plugin == 'CoreMediaPlugin' && EventAudio.supports(action.command)) {
+                    audio.execute(action);
+                    continue;
+                }
                 var adapter = commandAdapters.get(Json.stringify([action.plugin, action.command]));
                 var uiUpdate = action.plugin == 'CoreUIFrameworkPlugin' && action.command == 'UpdateItem';
                 if ((!uiUpdate && adapter == null) || !CommandCentral.hasPlugin(action.plugin)
