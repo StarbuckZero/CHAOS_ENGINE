@@ -43,6 +43,7 @@ import com.chaos.ui.ItemPane;
 import com.chaos.ui.Slider;
 import com.chaos.ui.GridPane;
 import com.chaos.ui.Menu;
+import com.chaos.ui.Accordion;
 import com.chaos.ui.TabPane;
 import com.chaos.ui.ScrollPane;
 import com.chaos.ui.Window;
@@ -135,6 +136,7 @@ class CoreUIFrameworkPlugin
     // Core UI Classes
     public static function initialize() : Void
     {
+        CommandCentral.addPluginName("CoreUIFrameworkPlugin", 1.0);
         // Default UI
         CommandCentral.addCommand("Button", createButton);
         CommandCentral.addCommand("ToggleButton", createToggleButton);
@@ -150,6 +152,7 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("ScrollBar", createScrollBar);
         CommandCentral.addCommand("GridPane", createGridPane);
         CommandCentral.addCommand("Menu", createMenu);
+        CommandCentral.addCommand("Accordion", createAccordion);
         CommandCentral.addCommand("TabPane", createTabPane);
         CommandCentral.addCommand("ScrollPane", createScrollPane);
         CommandCentral.addCommand("Window", createWindow);
@@ -222,10 +225,21 @@ class CoreUIFrameworkPlugin
             return null;
 
         var componentData:Dynamic = Reflect.field(itemData, objectType);
-        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, itemName);
+        var resolved:Dynamic = Reflect.field(data, "_resolvedEventTarget");
+        var displayObj:DisplayObject = Std.isOfType(resolved, DisplayObject) ? cast resolved : Utils.getNestedChild(Global.mainDisplyArea, itemName);
 
         if (displayObj == null)
             return null;
+
+        // -------------------------------------------------
+        // Accordion special update
+        // -------------------------------------------------
+        if (Std.isOfType(displayObj, Accordion))
+        {
+            CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
+            updateAccordionScreens(componentData, cast(displayObj, Accordion));
+            return displayObj;
+        }
 
         // -------------------------------------------------
         // TabPane special update
@@ -670,6 +684,26 @@ class CoreUIFrameworkPlugin
     }
 
     
+    private static function createAccordion(data:Dynamic):Dynamic
+    {
+        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+
+        if (displayObj != null && Std.isOfType(displayObj, Accordion))
+        {
+            var accordion:Accordion = cast(displayObj, Accordion);
+            CoreCommandPlugin.setComponentData(data, cast(accordion, IBaseUI));
+            updateAccordionScreens(data, accordion);
+            return accordion;
+        }
+
+        var accordion:Accordion = new Accordion();
+        CoreCommandPlugin.setComponentData(data, cast(accordion, IBaseUI));
+        CoreCommandPlugin.displayUpdate(accordion, data);
+        CommandDispatch.attachEvent(accordion, Event.CHANGE);
+        updateAccordionScreens(data, accordion);
+        return accordion;
+    }
+
     private static function createTabPane(data:Dynamic):Dynamic
     {
         var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
@@ -989,8 +1023,6 @@ class CoreUIFrameworkPlugin
         
         if (null != displayObj && Std.isOfType(displayObj, RadioButtonGroup))
         {
-            // Remove old stuff
-            cast(displayObj, BaseContainer).removeAll();
 
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             cast(displayObj, IBaseUI).draw();
@@ -1025,8 +1057,6 @@ class CoreUIFrameworkPlugin
 
         if (null != displayObj && Std.isOfType(displayObj, CheckBoxGroup)) 
         {
-
-            cast(displayObj, BaseContainer).removeAll();
             CoreCommandPlugin.setComponentData(data, cast(displayObj, IBaseUI));
             cast(displayObj, IBaseUI).draw();
             
@@ -1278,6 +1308,87 @@ class CoreUIFrameworkPlugin
         tabPane.draw();
     }
     
+    private static function updateAccordionScreens(data:Dynamic, accordion:Accordion):Void
+    {
+        if (accordion == null)
+            return;
+
+        accordion.removeAllSections();
+
+        if (!Reflect.hasField(data, "data"))
+        {
+            accordion.draw();
+            return;
+        }
+
+        var sectionArray:Array<Dynamic> = cast Reflect.field(data, "data");
+
+        for (i in 0...sectionArray.length)
+        {
+            var sectionItem:Dynamic = sectionArray[i];
+            var sectionName:String = Reflect.hasField(sectionItem, "name")
+                ? Std.string(Reflect.field(sectionItem, "name"))
+                : "section" + i;
+
+            if (sectionName == "")
+                sectionName = "section" + i;
+
+            var sectionText:String = Reflect.hasField(sectionItem, "text")
+                ? Std.string(Reflect.field(sectionItem, "text"))
+                : "New Section";
+            var screenDisplay:DisplayObject = null;
+
+            if (Reflect.hasField(sectionItem, "screen"))
+            {
+                var screenName:String = Std.string(Reflect.field(sectionItem, "screen"));
+
+                if (screenName != "" && CoreFrameworkPlugin.hasScreen(screenName))
+                    screenDisplay = cast(CoreCommandPlugin.getScreen(screenName), DisplayObject);
+            }
+
+            accordion.addSection(sectionName, sectionText, screenDisplay);
+        }
+
+        accordion.draw();
+
+        if (sectionArray.length == 0)
+            return;
+
+        var selectedIndex:Int = 0;
+
+        if (Reflect.hasField(data, "selectedIndex"))
+        {
+            var requestedIndex:Int = Std.int(Reflect.field(data, "selectedIndex"));
+
+            if (requestedIndex >= 0 && requestedIndex < sectionArray.length)
+                selectedIndex = requestedIndex;
+        }
+        else if (Reflect.hasField(data, "selectedSectionName"))
+        {
+            var requestedName:String = Std.string(Reflect.field(data, "selectedSectionName"));
+
+            for (i in 0...sectionArray.length)
+            {
+                if (Reflect.hasField(sectionArray[i], "name")
+                    && Std.string(Reflect.field(sectionArray[i], "name")) == requestedName)
+                {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        var selectedItem:Dynamic = sectionArray[selectedIndex];
+        var selectedName:String = Reflect.hasField(selectedItem, "name")
+            ? Std.string(Reflect.field(selectedItem, "name"))
+            : "section" + selectedIndex;
+
+        if (selectedName == "")
+            selectedName = "section" + selectedIndex;
+
+        accordion.open(selectedName);
+    }
+
     private static function setAlertBox(data : Dynamic) : Void
     {
         /*

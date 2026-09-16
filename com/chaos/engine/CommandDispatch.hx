@@ -30,7 +30,7 @@ class CommandDispatch
 {
     
     
-    private static var eventList : Dynamic = {};
+    private static var eventList:haxe.ds.ObjectMap<IBaseUI, Array<String>> = new haxe.ds.ObjectMap();
     private static var _eventDispatcher : EventDispatcher = new EventDispatcher();
     
     public function new()
@@ -52,65 +52,29 @@ class CommandDispatch
         _eventDispatcher.removeEventListener(EngineDispatchEvent.ENGINE_EVENT, callBack);
     }
     
-    public static function attachEvent(element : IBaseUI, eventType : String) : Void
-    {
-        var eventObj : Dynamic;
-        
-        if (Reflect.hasField(eventList, element.name))
-        {
-            eventObj = Reflect.field(eventList, Std.string(element.name));
-        }
-        else
-        {
-            Reflect.setField(eventList, Std.string(element.name), {});
-            eventObj = Reflect.field(eventList, Std.string(element.name));
-        }
-            
-        
-        // Check to see if even is already in list
-        if (Reflect.hasField(eventObj, eventType))
-        {
-            Debug.print("[CommandDispatch::attachEvent] Event has already been set.");
-            return;
-        }
-        
-        Reflect.setField(eventObj, eventType, eventType);
-        
+    public static function attachEvent(element:IBaseUI, eventType:String):Void {
+        var events = eventList.get(element);
+        if (events == null) { events = []; eventList.set(element, events); }
+        if (events.indexOf(eventType) >= 0) return;
+        events.push(eventType);
         element.addEventListener(eventType, triggerEvent);
     }
-    
-    public static function removeEvent(element : IBaseUI, eventType : String) : Void
-    {
-        var eventObj : Dynamic;
-        
-        if (eventList.exists(element.name))
-        {
-            eventObj = Reflect.field(eventList, Std.string(element.name));
-        }
-        else
-        {
-            Reflect.setField(eventList, Std.string(element.name), {});
-            eventObj = Reflect.field(eventList, Std.string(element.name));
-        }
-        
+
+    public static function removeEvent(element:IBaseUI, eventType:String):Void {
         element.removeEventListener(eventType, triggerEvent);
-        Reflect.deleteField(eventObj, eventType);
+        var events = eventList.get(element);
+        if (events == null) return;
+        events.remove(eventType);
+        if (events.length == 0) eventList.remove(element);
     }
-    
-    public static function removeAllEvents(element : IBaseUI) : Void
-    {
-        for (index in Reflect.fields(eventList))
-        {
-            var eventObj : Dynamic = Reflect.field(eventList, index);
-            
-            for (subIndex in Reflect.fields(eventObj))
-            {
-                element.removeEventListener(subIndex, triggerEvent);
-                Reflect.deleteField(eventObj, subIndex);
-            }
-        }
+
+    public static function removeAllEvents(element:IBaseUI):Void {
+        var events = eventList.get(element);
+        if (events == null) return;
+        for (eventType in events) element.removeEventListener(eventType, triggerEvent);
+        eventList.remove(element);
     }
-    
+
     private static function triggerEvent(event : Event) : Void
     {
         var eventData : Dynamic = {};
