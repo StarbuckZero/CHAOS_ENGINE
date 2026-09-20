@@ -10,6 +10,21 @@ import com.chaos.engine.plugin.CoreCommandPlugin;
 
 /** One instance per display runtime. Commands receive resolved targets, never global lookup results. */
 class EventPlugin {
+    private static var instances:Array<EventPlugin> = [];
+    /** Detach listeners owned by a removed/replaced display subtree in every active runtime. */
+    public static function detachTree(node:DisplayObject):Void {
+        for (plugin in instances) for (key in [for (key in plugin.listeners.keys()) key]) {
+            var entries = plugin.listeners.get(key);
+            var retained = [];
+            for (entry in entries) {
+                var source:DisplayObject = Std.isOfType(entry.receiver, DisplayObject) ? cast entry.receiver : null;
+                while (source != null && source != node) source = source.parent;
+                if (source == node) entry.receiver.removeEventListener(entry.name, entry.callback);
+                else retained.push(entry);
+            }
+            if (retained.length == 0) plugin.listeners.remove(key); else plugin.listeners.set(key, retained);
+        }
+    }
     private static var commandAdapters:Map<String, DisplayObject->Dynamic->Dynamic> = new Map();
 
     /** Plugins register a payload builder; execution always goes through CommandCentral. */
@@ -32,6 +47,7 @@ class EventPlugin {
 
     public function new(root:DisplayObjectContainer) {
         this.root = root;
+        instances.push(this);
         audio.report = function(message) report(message);
         report = function(message) { trace(message); };
     }
@@ -60,7 +76,7 @@ class EventPlugin {
         clear();
     }
 
-    public function dispose():Void { audio.dispose(); clear(); enabled = false; root = null; afterAction = null; }
+    public function dispose():Void { instances.remove(this); audio.dispose(); clear(); enabled = false; root = null; afterAction = null; }
 
     private function remove(key:String):Void {
         var entries = listeners.get(key);
@@ -104,6 +120,12 @@ class EventPlugin {
             var source = resolve(config.name, config.scope);
             var capability:Dynamic = Reflect.field(EventCapabilities.catalog, config.componentType);
             if (capability == null) throw 'Unsupported component ' + config.componentType;
+            if (Std.isOfType(source, com.chaos.ui.chart.ChartBase)) {
+                var disposeName = com.chaos.ui.event.ChartEvent.DISPOSE;
+                var disposeCallback:Event->Void = function(_) remove(key);
+                source.addEventListener(disposeName, disposeCallback);
+                entries.push({receiver:source, name:disposeName, callback:disposeCallback});
+            }
             var seen:Map<String,Bool> = new Map();
             for (event in (cast config.events:Array<Dynamic>)) {
                 if (seen.exists(event.type)) throw 'Duplicate event ' + event.type;
@@ -122,7 +144,7 @@ class EventPlugin {
                     // Detached/replaced sources must never keep executing old configurations.
                     try { if (resolve(config.name, config.scope) != source) return; } catch (_:Dynamic) { return; }
                     executing = true;
-                    try { execute(config, event); } catch (error:Dynamic) { report('EventPlugin ' + key + ': ' + Std.string(error)); }
+                    try { execute(config, event, incoming); } catch (error:Dynamic) { report('EventPlugin ' + key + ': ' + Std.string(error)); }
                     executing = false;
                 };
                 receiver.addEventListener(binding.eventName, callback);
@@ -131,7 +153,7 @@ class EventPlugin {
         } catch (error:Dynamic) { remove(key); report('EventPlugin ' + key + ': ' + Std.string(error)); }
     }
 
-    private function execute(config:Dynamic, event:Dynamic):Void {
+    private function execute(config:Dynamic, event:Dynamic, incoming:Event):Void {
         var ordered:Array<{action:Dynamic,index:Int,order:Float}> = [];
         var actions:Array<Dynamic> = cast event.actions;
         for (i in 0...actions.length) {
@@ -157,7 +179,10 @@ class EventPlugin {
                 var properties:Dynamic = Json.parse(Json.stringify(action.properties));
                 if (properties == null || !Reflect.isObject(properties) || Std.isOfType(properties, Array)) throw 'Invalid properties';
                 if (adapter != null) {
-                    CommandCentral.runCommand(action.command, adapter(target, properties));
+                    var commandData = adapter(target, properties);
+                    if (Std.isOfType(incoming, com.chaos.ui.event.ChartEvent))
+                        Reflect.setField(commandData, "_eventPayload", cast(incoming, com.chaos.ui.event.ChartEvent).payload);
+                    CommandCentral.runCommand(action.command, commandData);
                     if (afterAction != null) afterAction();
                     continue;
                 }
@@ -170,7 +195,7 @@ class EventPlugin {
                 Reflect.setField(properties, 'redraw', true);
                 var wrapped:Dynamic = {};
                 Reflect.setField(wrapped, Type.getClassName(Type.getClass(target)).split('.').pop(), properties);
-                CommandCentral.runCommand(action.command, {name:action.target, data:wrapped, _resolvedEventTarget:target});
+                CommandCentral.runCommand(action.command, {name:action.target, data:wrapped, _resolvedEventTarget:target, _eventPayload:Std.isOfType(incoming, com.chaos.ui.event.ChartEvent) ? cast(incoming, com.chaos.ui.event.ChartEvent).payload : null});
                 if (afterAction != null) afterAction();
             } catch (error:Dynamic) {
                 report('EventPlugin source=' + config.name + ' event=' + event.type + ' action=' + action.id

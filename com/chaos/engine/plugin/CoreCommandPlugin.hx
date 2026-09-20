@@ -63,7 +63,7 @@ class CoreCommandPlugin
     
     public static function setComponentData(data : Dynamic, UIObject : IBaseUI) : Void
     {
-        UIObject.setComponentData(data);
+        UIObject.setComponentData(Std.isOfType(UIObject, com.chaos.ui.chart.ChartBase) ? CoreChartSupport.componentData(data) : data);
 
         if(Reflect.hasField(data,"redraw") && Reflect.field(data,"redraw"))
             UIObject.draw();
@@ -127,4 +127,3 @@ class CoreCommandPlugin
         return cast(CommandCentral.runCommand(EngineTypes.DATA_UPDATE, {name : elementName,append : append, items : ((null != items)) ? items : []}), DisplayObject);
     }
 }
-

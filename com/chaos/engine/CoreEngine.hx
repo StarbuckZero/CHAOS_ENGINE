@@ -121,6 +121,7 @@ class CoreEngine extends Sprite
         {
             try
             {
+                if (_currentLayer != null && _currentLayer.parent == null) Global.currentLayer = _currentLayer = null;
                 object = CommandCentral.runCommand(index, Reflect.field(dataObj, index), ((null != _currentLayer)) ? _currentLayer : displayArea);
 
                 CommandDispatch.dispatch("CoreEngine", CoreEngineEvent.ITEM_CREATED, {type : index, item : object});
@@ -185,4 +186,3 @@ class CoreEngine extends Sprite
         
 	}     
 }
-

@@ -159,6 +159,7 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("WindowManager", createWindowManager);
         CommandCentral.addCommand("ToolTip", updateToolTip);
         CommandCentral.addCommand("ProgressBar", createProgressBar);
+        CoreChartSupport.initialize();
         CommandCentral.addCommand("FormBuilder", createForm);
 
         // Mobile
@@ -291,8 +292,9 @@ class CoreUIFrameworkPlugin
     {
         var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
         
-        if(displayObj == null)
-            Debug.print("[CoreUIFrameworkPlugin::removeItem] Unable to removed Item: " + Reflect.field(data,"name") );
+        if(displayObj == null) return null;
+        CoreChartSupport.disposeTree(displayObj);
+
 
         
 
@@ -1506,4 +1508,3 @@ class CoreUIFrameworkPlugin
 
     }
 }
-

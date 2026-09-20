@@ -148,8 +148,10 @@ class CoreFrameworkPlugin
             
             var element : IBaseUI = currentContainer.getElementByName(itemNames[i]);
             
-            if(null != element)
+            if(null != element) {
+                CoreChartSupport.disposeTree(element.displayObject);
                 currentContainer.removeElement(element);
+            }
         }
 
 
@@ -378,6 +380,8 @@ class CoreFrameworkPlugin
     {
         var oldLayer : BaseUI = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), BaseUI); //cast(getScreen(data), BaseUI);
         
+        if (oldLayer == null) return null;
+        CoreChartSupport.disposeTree(oldLayer);
         // Remove all attached events.
         for (i in 0...oldLayer.numChildren)
         {
@@ -428,6 +432,7 @@ class CoreFrameworkPlugin
         if ( Reflect.hasField(screenCache, Reflect.field(data,"name") ) )
         {
             removeScreen = Reflect.field(screenCache, Reflect.field(data,"name"));
+            CoreChartSupport.disposeTree(removeScreen);
             
             // Remove out of the display
             if (null != removeScreen.parent)
@@ -476,7 +481,7 @@ class CoreFrameworkPlugin
             var items:Array<Dynamic> = Reflect.field(data,"items");
 
             ThreadManager.createTaskManager(EngineTypes.SCREEN, CoreCommandPlugin.getDisplayObject(data));
-            ThreadManager.addTask(EngineTypes.SCREEN, new TaskDataObject(data.name, 0, data.items.length, subThread, [items, newScreen]));
+            CoreChartSupport.queueBuild(EngineTypes.SCREEN, newScreen.displayObject, items, subThread);
         }
         
         return newScreen;
@@ -495,7 +500,7 @@ class CoreFrameworkPlugin
                 
         // Add items in the background
         ThreadManager.createTaskManager(EngineTypes.ELEMENT, CoreCommandPlugin.getDisplayObject(data));
-        ThreadManager.addTask(EngineTypes.ELEMENT, new TaskDataObject(data.name, 0, data.items.length, subThread, [items, newElement]));
+        CoreChartSupport.queueBuild(EngineTypes.ELEMENT, newElement.displayObject, items, subThread);
         
         return newElement;
     }
@@ -539,7 +544,7 @@ class CoreFrameworkPlugin
 
         // Add items in the background
         ThreadManager.createTaskManager(contentType, CoreCommandPlugin.getDisplayObject(data));
-        ThreadManager.addTask(contentType, new TaskDataObject(Reflect.field(data,"name"), 0, items.length, containerThread, [items, contentArea]));
+        CoreChartSupport.queueBuild(contentType, contentArea.displayObject, items, containerThread);
     }
     
     private static function containerThread(task : ITask) : Void
@@ -618,4 +623,3 @@ class CoreFrameworkPlugin
 
 
 }
-

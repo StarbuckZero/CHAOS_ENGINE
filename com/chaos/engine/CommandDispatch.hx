@@ -79,6 +79,7 @@ class CommandDispatch
     {
         var eventData : Dynamic = {};
         
+        if (Std.isOfType(event, com.chaos.ui.event.ChartEvent)) eventData = cast(event, com.chaos.ui.event.ChartEvent).payload;
         // Special cases based on type
         if (Std.is(event.currentTarget, IToggleButton))
         {
@@ -152,4 +153,3 @@ class CommandDispatch
         dispatch(cast(event.currentTarget,IBaseUI).name, event.type, eventData);
     }
 }
-
