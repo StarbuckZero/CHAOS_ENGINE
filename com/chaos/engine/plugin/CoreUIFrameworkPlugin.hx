@@ -159,7 +159,6 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("WindowManager", createWindowManager);
         CommandCentral.addCommand("ToolTip", updateToolTip);
         CommandCentral.addCommand("ProgressBar", createProgressBar);
-        CoreChartSupport.initialize();
         CommandCentral.addCommand("FormBuilder", createForm);
 
         // Mobile
