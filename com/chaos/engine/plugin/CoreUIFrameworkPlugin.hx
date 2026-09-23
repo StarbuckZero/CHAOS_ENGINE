@@ -11,6 +11,8 @@ import com.chaos.form.ui.DateField;
 import com.chaos.form.ui.DropDownMenu;
 import com.chaos.form.ui.EmailField;
 import com.chaos.form.ui.InputField;
+import com.chaos.form.ui.NumberField;
+import com.chaos.form.ui.ValidateField;
 import com.chaos.form.ui.PasswordField;
 import com.chaos.form.ui.PhoneNumberField;
 import com.chaos.form.ui.RadioButtonList;
@@ -498,15 +500,17 @@ class CoreUIFrameworkPlugin
             if(Reflect.hasField(data,"data"))
                 updateForm(Reflect.field(data,"data"), cast(displayObj,FormBuilder));
 
+            if (Reflect.hasField(data, "values")) cast(displayObj, FormBuilder).setFormData(data.values);
             return displayObj;
         }
         else
         {
-            var form : IFormBuilder = new FormBuilder(data);
+            var form = new FormBuilder(data);
 
             if(Reflect.hasField(data,"data"))
                 updateForm(Reflect.field(data,"data"), form);
     
+            if (Reflect.hasField(data, "values")) form.setFormData(data.values);
             CoreCommandPlugin.displayUpdate(form, data);
             return form;
         }
@@ -1159,31 +1163,23 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
-    private static function updateForm(data:Dynamic, formBuilder:IFormBuilder ) : Void {
-
-        for(item in Reflect.fields(Reflect.field(data,"data"))) {
-
-            var elementClass : Class<Dynamic> = null;
-            var elementParams : Dynamic = null;
-            var layoutClass : Dynamic = null;
-            var params : Dynamic = null;
-
-            if(Reflect.hasField(item,"elementClass"))
-                elementClass = getFormClass(Reflect.field(item,"elementClass"));
-
-            if(Reflect.hasField(item,"elementClass"))
-                elementParams = Reflect.field(item,"elementParams");
-
-            if(Reflect.hasField(item,"layoutClass"))
-                layoutClass = getCellLayout(Reflect.field(item,"layoutClass"));
-
-            if(Reflect.hasField(item,"layoutClass"))
-                params = Reflect.field(item,"params");
-
-            formBuilder.addFormElement(Reflect.field(item,"labelName"), Reflect.field(item,"elementName"), elementClass , elementParams , layoutClass , params );
-
+    private static function updateForm(data:Dynamic, formBuilder:FormBuilder):Void {
+        // Accept the existing nested payload as well as the IDE's normal data array.
+        var rows:Dynamic = Std.isOfType(data, Array) ? data : Reflect.field(data, "data");
+        if (!Std.isOfType(rows, Array)) return;
+        var names = new Map<String, Bool>();
+        var fields:Array<Dynamic> = cast rows;
+        for (field in fields) {
+            if (field == null || !Std.isOfType(field.elementName, String) || StringTools.trim(field.elementName) == ""
+                || names.exists(field.elementName)) throw "Form fields need unique, non-empty elementName values";
+            names.set(field.elementName, true);
         }
-
+        formBuilder.clearFormElements();
+        for (field in fields) {
+            formBuilder.addFormElement(field.labelName == null ? field.elementName : field.labelName,
+                field.elementName, getFormClass(field.elementClass), field.elementParams,
+                field.layoutClass == null ? null : getCellLayout(field.layoutClass), field.params);
+        }
     }
 
     private static function updateGridPane(column:Array<Dynamic>, gridPane:IGridPane ) : Void {
@@ -1409,19 +1405,24 @@ class CoreUIFrameworkPlugin
     {
         switch (type)
         {
+            case "NumberField": return NumberField;
+            case "ValidateField": return ValidateField;
+            case "CheckBox": return CheckBox;
+            case "RadioButton": return RadioButton;
+            case "Slider": return Slider;
             case "CheckBoxList":
                 return CheckBoxList;
             
             case "DateField":
                 return DateField;
             
-            case "DropDownMenu":
+            case "DropDownMenu", "ComboBox":
                 return DropDownMenu;
             
             case "EmailField":
                 return EmailField;
             
-            case "InputField":
+            case "InputField", "TextInput":
                 return InputField;
             
             case "PasswordField":
@@ -1433,10 +1434,10 @@ class CoreUIFrameworkPlugin
             case "RadioButtonList":
                 return RadioButtonList;
             
-            case "Select":
+            case "Select", "ListBox":
                 return Select;
             
-            case "TextLabel":
+            case "TextLabel", "Label":
                 return TextLabel;
             default:
                 Debug.print("[CoreFrameworkPlugin::getFormClass] Did not find type " + type + " using TextLabel.");
