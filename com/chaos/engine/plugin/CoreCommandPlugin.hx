@@ -15,7 +15,7 @@ import com.chaos.engine.EngineTypes;
 import com.chaos.utils.Debug;
 
 /**
-* Just call commands that should already be loaded
+* Provides shared helpers for engine commands and display lookup.
 * @author Erick Feiling
 */
 class CoreCommandPlugin
@@ -23,15 +23,16 @@ class CoreCommandPlugin
     private static var unNameCount : Int = 0;
     
     
+    /** Creates a command helper; operations are exposed statically. */
     public function new()
     {
         
     }
         
     /**
-    * Adds object to layer if there is one set. If none is set then the display area passed in
-    * @param	UIObject The UI object you want to add to the display
-    * @param	displayArea The object that the UIObject will be added to if there isn't a layer set
+    * Adds a UI object's display object to the resolved display area.
+    * @param UIObject UI object to add.
+    * @param data Command data used to resolve the display area.
     */
     
     public static function displayUpdate(UIObject : IBaseUI, data : Dynamic) : Void
@@ -41,8 +42,8 @@ class CoreCommandPlugin
     }
 
     /**
-    * Try to find display area
-    * @param	data The UI object you want to add to the display
+    * Resolves the display area from command data, the current layer, or the root.
+    * @param data Command data that may contain `displayArea`.
     */
 
     public static function getDisplayObject( data : Dynamic ) : Sprite 
@@ -61,6 +62,7 @@ class CoreCommandPlugin
         }
     }
     
+    /** Applies component data and optionally redraws the UI object. */
     public static function setComponentData(data : Dynamic, UIObject : IBaseUI) : Void
     {
         UIObject.setComponentData(Std.isOfType(UIObject, com.chaos.ui.chart.ChartBase) ? CoreChartSupport.componentData(data) : data);
@@ -70,6 +72,7 @@ class CoreCommandPlugin
     }
     
     
+    /** Removes forwarded engine listeners recursively from container children. */
     public static function removeContainerEvents(baseContainer : IBaseContainer) : Void
     {
         
@@ -87,6 +90,7 @@ class CoreCommandPlugin
         }
     }
     
+    /** Looks up a screen through the registered framework command. */
     public static function getScreen(screenName : String) : DisplayObject
     {
         if(!CommandCentral.hasPlugin("CoreFrameworkPlugin"))
@@ -95,6 +99,7 @@ class CoreCommandPlugin
         return try cast(CommandCentral.runCommand(EngineTypes.GET_SCREEN, {name : screenName}), DisplayObject);
     }
     
+    /** Looks up a UI element through the registered framework command. */
     public static function getElement(elementName : String) : DisplayObject
     {
         if(!CommandCentral.hasPlugin("CoreFrameworkPlugin"))
@@ -103,6 +108,7 @@ class CoreCommandPlugin
         return cast(CommandCentral.runCommand(EngineTypes.GET_ELEMENT, {name : elementName}), DisplayObject);
     }
     
+    /** Looks up bitmap data through the registered image command. */
     public static function getImage(elementName : String) : BitmapData
     {
         if(!CommandCentral.hasPlugin("CoreFrameworkPlugin"))
@@ -111,6 +117,7 @@ class CoreCommandPlugin
         return cast(CommandCentral.runCommand(EngineTypes.GET_IMAGE, {name : elementName}), BitmapData);
     }
     
+    /** Looks up a named item through the registered framework command. */
     public static function getItem(elementName : String) : DisplayObject
     {
         if(!CommandCentral.hasPlugin("CoreFrameworkPlugin"))
@@ -119,6 +126,7 @@ class CoreCommandPlugin
         return cast(CommandCentral.runCommand(EngineTypes.GET_ITEM, {name : elementName}), DisplayObject);
     }
     
+    /** Sends items to a named data provider, replacing or appending as requested. */
     public static function setDataProvider(elementName : String, append : Bool = false, items : Array<Dynamic> = null) : DisplayObject
     {
         if(!CommandCentral.hasPlugin("CoreFrameworkPlugin"))

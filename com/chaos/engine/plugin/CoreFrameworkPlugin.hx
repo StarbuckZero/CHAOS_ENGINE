@@ -31,7 +31,7 @@ import openfl.display.BitmapData;
 
 
 /**
-* This adds the CHAOS Media Framework to Command Central which is used to call functions
+* Registers core layer, screen, element, and container commands.
 * @author Erick Feiling
 */
 class CoreFrameworkPlugin
@@ -42,12 +42,13 @@ class CoreFrameworkPlugin
     
     private static var element : Dynamic = {};
     
+    /** Creates a framework plugin; registration uses static methods. */
     public function new()
     {
     }
 
     /**
-    * This addes the core CHAOS framework to the engine to be used
+    * Registers the core framework commands with CommandCentral.
     */
     
     public static function initialize() : Void
@@ -274,6 +275,7 @@ class CoreFrameworkPlugin
 
     
     
+    /** Stores a named screen definition and optionally builds a cached screen. */
     public static function createScreen(data : Dynamic) : Dynamic
     {
         if ( Reflect.hasField(data,"name") && !Reflect.hasField(screen, Reflect.field(data,"name")) )
@@ -335,7 +337,7 @@ class CoreFrameworkPlugin
         if (Reflect.hasField(data,"name"))
         {
             var newLayer : IBaseUI = new BaseUI(data);
-            var displayArea : Sprite  = Global.mainDisplyArea;
+            var displayArea : Sprite  = Reflect.hasField(data, "displayArea") ? Reflect.field(data, "displayArea") : Global.mainDisplyArea;
             displayArea.addChild(newLayer.displayObject);
             
             return newLayer;
@@ -401,6 +403,7 @@ class CoreFrameworkPlugin
         return null;
     }
     
+    /** Returns a cached screen or builds one from its stored definition. */
     public static function getScreen(data : Dynamic) : DisplayObject
     {
         if (Reflect.field(screenCache, Reflect.field(data,"name")))
@@ -414,6 +417,7 @@ class CoreFrameworkPlugin
         return null;
     }
 
+    /** Checks whether a named screen is cached or defined. */
     public static function hasScreen(name : String) : Bool
     {
         if (Reflect.field(screenCache, name))
@@ -424,6 +428,7 @@ class CoreFrameworkPlugin
         return false;
     }    
     
+    /** Removes a named screen from the cache, display, and definition list. */
     public static function removeScreen(data : Dynamic) : DisplayObject
     {
         var removeScreen : DisplayObject = null;
@@ -449,6 +454,7 @@ class CoreFrameworkPlugin
         return removeScreen;
     }
     
+    /** Builds the named element from its stored definition, if present. */
     public static function getElement(data : Dynamic) : DisplayObject
     {
         if ( Reflect.hasField(data,"name") && Reflect.hasField(element, Reflect.field(data,"name")))
@@ -459,6 +465,7 @@ class CoreFrameworkPlugin
         return null;
     }
     
+    /** Creates a screen, applies default dimensions, and queues its child items. */
     public static function buildScreen(data : Dynamic) : IBaseUI
     {
 
@@ -487,6 +494,7 @@ class CoreFrameworkPlugin
         return newScreen;
     }
     
+    /** Creates an element with default dimensions and queues its child items. */
     public static function buildElement(data : Dynamic) : IBaseUI
     {
         if(!Reflect.hasField(data,"width"))
@@ -591,8 +599,23 @@ class CoreFrameworkPlugin
             // Run command long as it's not another screen or layer
             try {
                 
-                if (EngineTypes.LAYER != index && EngineTypes.SCREEN != index) {
-                    CommandCentral.runCommand(index, Reflect.field(dataObj, index), cast(displayObj, Sprite));
+                if (EngineTypes.SCREEN != index) {
+                    var childData:Dynamic = Reflect.field(dataObj, index);
+                    if (EngineTypes.LAYER == index) {
+                        Reflect.setField(childData, "displayArea", displayObj);
+                        var layer:IBaseUI = CommandCentral.runCommand(index, childData);
+                        if (layer != null && Reflect.hasField(childData, "items")) {
+                            for (item in (cast Reflect.field(childData, "items"):Array<Dynamic>)) {
+                                for (type in Reflect.fields(item)) {
+                                    var itemData:Dynamic = Reflect.field(item, type);
+                                    Reflect.setField(itemData, "displayArea", layer.displayObject);
+                                    CommandCentral.runCommand(type, itemData, cast(layer.displayObject, Sprite));
+                                }
+                            }
+                        }
+                    } else {
+                        CommandCentral.runCommand(index, childData, cast(displayObj, Sprite));
+                    }
                 }else {
                     Debug.print("[CoreFrameworkPlugin::subThread] Couldn't run command " + index + ".");
                 }

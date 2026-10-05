@@ -3,7 +3,7 @@ package com.chaos.engine;
 import openfl.display.Sprite;
 
 /**
-* CommandCentral calls a function based on the key value that was passed in.
+* Registers named commands and invokes them with a data object.
 * @author Erick Feiling
 */
 class CommandCentral
@@ -12,9 +12,9 @@ class CommandCentral
     private static var pluginNameList : Dynamic = {};
     
     /**
-    * Add name and version plugin
-    * @param	name The name of the plugin
-    * @param	ver The major and minor version number of the plugin
+    * Records a plugin's name and version.
+    * @param name Plugin name.
+    * @param ver Plugin version.
     */
     public static function addPluginName(name : String, ver : Float) : Void
     {
@@ -22,15 +22,15 @@ class CommandCentral
     }
     
     /**
-    * Check to see if the plugin is being used
+    * Checks whether a plugin is registered at the requested version or later.
     * @param	name The name of the plugin
     * @param	ver The major and minor version number of the plugin
-    * @return	True if plubin is being used
+    * @return True if the plugin is registered and satisfies the version requirement.
     */
 
     public static function hasPlugin(name : String, ver : Float = 0) : Bool
     {
-        // If version number is 0 just make sure plugin is there else make sure number stroed is greater than number stored
+        // With no version requirement, check presence; otherwise compare registered versions.
         if(Reflect.hasField(pluginNameList, name) && ver <= 0) {
             return true;
         }
@@ -42,9 +42,9 @@ class CommandCentral
     }
     
     /**
-    * Check to see if command is being used
-    * @param	key This is a name that will be used to call the function.
-    * @return	True if command has been found
+    * Checks whether a command key has a registered callback.
+    * @param key Command name.
+    * @return True if the command is registered.
     */
     public static function hasCommand(key : String) : Bool
     {
@@ -52,9 +52,9 @@ class CommandCentral
     }
 
     /**
-    * Adds a function to be called
-    * @param	key This is a name that will be used to call the function.
-    * @param	func Calls a function with the data object and display area. This is so things can be added to it.
+    * Registers or replaces the callback associated with a command key.
+    * @param key Command name.
+    * @param func Callback invoked with the command data object.
     */
     public static function addCommand(key : String, func : Dynamic->Dynamic) : Void
     {
@@ -62,8 +62,8 @@ class CommandCentral
     }
     
     /**
-    * Remove function call from list
-    * @param	key The name of the call that will be removed
+    * Removes a registered command callback, if present.
+    * @param key Command name to remove.
     */
     public static function removeCommand(key : String) : Void
     {
@@ -72,12 +72,12 @@ class CommandCentral
     }
     
     /**
-    * Run command based on key name
+    * Invokes a registered command and optionally adds `displayArea` to its data.
     * 
-    * @param	key The name of the command in list
-    * @param	dataObj The data object that is used to help run the command
-    * @param	displayArea The display area the command can update
-    * @return	The command output in most cases a display object of some kind
+    * @param key Command name.
+    * @param dataObj Data passed to the callback.
+    * @param displayArea Optional display area added to `dataObj` before invocation.
+    * @return The callback result, or null when no command is registered.
     */
     public static function runCommand(key : String, dataObj : Dynamic, displayArea:Sprite = null) : Dynamic
     {

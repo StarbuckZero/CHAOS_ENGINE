@@ -14,7 +14,7 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 
 /**
-* ...
+* Loads and applies theme style and bitmap data.
 * @author Erick Feiling
 */
 
@@ -26,10 +26,12 @@ class ThemeLoader
     private static var styleLoaded : Bool = false;
     private static var bitmapLoaded : Bool = false;
     
+    /** Creates a theme loader; loading operations use static methods. */
     public function new()
     {
     }
     
+    /** Starts loading theme data from a URL. */
     public static function load(fileURL : String) : Void
     {
         if (null == urlLoader)
@@ -45,6 +47,7 @@ class ThemeLoader
         urlLoader.load(request);
     }
     
+    /** Parses theme data and applies its styles and bitmaps. */
     public static function setTheme(data : Dynamic) : Void
     {
         var dataObj : Dynamic = {};

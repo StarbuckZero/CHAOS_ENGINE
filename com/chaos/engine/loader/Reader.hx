@@ -5,16 +5,20 @@ import com.chaos.utils.ThreadManager;
 import openfl.display.Stage;
 
 /**
-* Reader for running and dispatching commands
+* Base reader that schedules data parsing on the engine timer.
 * @author Erick Feiling
 */
 
 class Reader implements IReader
 {
+    /** Whether timer-driven processing is suspended. */
     public var lock(get, set) : Bool;
+    /** Callback invoked with parsed data. */
     public var onDataParse(get, set) : Dynamic->Void;
+    /** Callback invoked for reader errors. */
     public var onError(get, set) : Dynamic->Void;
 
+    /** Items waiting to be processed by the reader. */
     public var list : Array<Dynamic> = new Array<Dynamic>();
     
     private var _lock : Bool = false;
@@ -25,8 +29,8 @@ class Reader implements IReader
     
     
     /**
-    * Runs a timer so data can be processed
-    * @param	mainStage main flash stage
+    * Registers the reader's processing callback with the shared stage timer.
+    * @param mainStage Stage used by the timer manager.
     */
     
     public function new(mainStage : Stage)
@@ -36,9 +40,8 @@ class Reader implements IReader
     }
     
     /**
-    * Loads data from a given source
-    * 
-    * @param	fileURL The URL path to the file that will be loaded
+    * Placeholder for loading data from a URL in subclasses.
+    * @param fileURL URL to load.
     */
     
     public function load(fileURL : String) : Void
@@ -46,8 +49,8 @@ class Reader implements IReader
     }
     
     /**
-    * Set the data being used for the reader
-    * @param	data The raw data format for the reader
+    * Placeholder for accepting raw data in subclasses.
+    * @param data Data to parse.
     */
     
     public function setData(data : Dynamic) : Void
@@ -109,7 +112,7 @@ class Reader implements IReader
     }
     
     /**
-    * The main thread for reading data
+    * Placeholder for processing one timer tick in subclasses.
     */
     
     public function thread(value:Dynamic) : Void

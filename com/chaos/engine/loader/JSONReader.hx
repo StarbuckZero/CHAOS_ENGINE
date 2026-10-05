@@ -18,7 +18,7 @@ import openfl.events.EventDispatcher;
 import haxe.Json;
 
 /**
-* This will take data in the JSON format and pass it to the engine layer to figure out what to do with it.
+* Loads JSON data and feeds parsed commands to the engine over timer ticks.
 * @author Erick Feiling
 */
 
@@ -32,11 +32,13 @@ class JSONReader extends Reader implements IReader
     
     private var _eventDispatcher : EventDispatcher = new EventDispatcher();
     
+    /** Creates a JSON reader attached to the supplied stage timer. */
     public function new(mainStage : Stage)
     {
         super(mainStage);
     }
     
+    /** Starts loading JSON from a URL and dispatches a loading event. */
     override public function load(fileURL : String) : Void
     {
         var request : URLRequest = new URLRequest(fileURL);
@@ -54,6 +56,7 @@ class JSONReader extends Reader implements IReader
         Global.status = CoreEngineEvent.LOADING;
     }
     
+    /** Parses JSON text or accepts data directly and queues its items. */
     override public function setData(data : Dynamic) : Void
     {
         _eventDispatcher.dispatchEvent(new CoreEngineEvent(CoreEngineEvent.LOADING));
@@ -78,6 +81,7 @@ class JSONReader extends Reader implements IReader
     }
     
     
+    /** Processes the next queued command or layer item when reading is active. */
     override public function thread(value:Dynamic) : Void
     {
         if (!loaded || lock || Global.pause)

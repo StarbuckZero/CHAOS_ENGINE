@@ -27,7 +27,7 @@ import openfl.display.Sprite;
 import openfl.display.DisplayObject;
 
 /**
-* ...
+* Registers image, video, sound, and panorama commands with the engine.
 * @author Erick Feiling
 */
 class CoreMediaPlugin
@@ -37,10 +37,12 @@ class CoreMediaPlugin
     private static var soundManager : ISoundManager = new SoundManager();
     private static var _eventDispatcher : EventDispatcher = new EventDispatcher();
     
+    /** Creates a media plugin; command registration is static. */
     public function new()
     {
     }
     
+    /** Registers media commands and the plugin version. */
     public static function initialize() : Void
     {
         CommandCentral.addPluginName("CoreMediaPlugin", 1.0);

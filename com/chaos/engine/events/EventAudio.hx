@@ -4,25 +4,30 @@ import com.chaos.engine.CommandCentral;
 import com.chaos.media.SoundManager;
 import com.chaos.media.event.SoundStatusEvent;
 
-/** Per-preview audio assets, loading queue and playback; commands stay in CoreMediaPlugin. */
+/** Manages configured sound assets, asynchronous loading, and playback commands. */
 class EventAudio {
+    /** Sound manager owned by this event-audio instance. */
     public var manager(default, null):SoundManager = new SoundManager();
+    /** Callback for load and playback errors. */
     public var report:String->Void;
     private var assets:Map<String,Dynamic> = new Map();
     private var loading:Map<String,Bool> = new Map();
     private var ready:Map<String,Bool> = new Map();
     private var pending:Map<String,Array<Dynamic>> = new Map();
 
+    /** Creates a sound manager and registers load and error listeners. */
     public function new() {
         report = function(message) trace(message);
         manager.addEventListener(SoundStatusEvent.SOUND_LOADED, loaded);
         manager.addEventListener(SoundStatusEvent.SOUND_ERROR, failed);
     }
 
+    /** Reports whether a command is one of the supported sound actions. */
     public static function supports(command:String):Bool {
         return ['SoundLoad','SoundPlay','SoundPause','SoundStop','SoundSeek','SoundVolume'].indexOf(command) >= 0;
     }
 
+    /** Replaces the asset catalog from JSON and unloads changed or removed sounds. */
     public function configure(json:String):Bool {
         try {
             var data:Dynamic = haxe.Json.parse(json);
@@ -40,6 +45,7 @@ class EventAudio {
         } catch (_:Dynamic) { return false; }
     }
 
+    /** Validates and executes a sound action, queuing it until its asset loads if needed. */
     public function execute(action:Dynamic):Void {
         var name:String = action.target;
         if (!supports(action.command) || !CommandCentral.hasPlugin('CoreMediaPlugin') || !CommandCentral.hasCommand(action.command)) throw 'Unsupported media command';
@@ -96,11 +102,13 @@ class EventAudio {
         report('Unable to load sound ' + event.soundData.name);
     }
 
+    /** Drops queued actions and stops currently managed sounds. */
     public function stop():Void {
         pending = new Map();
         for (name in manager.getList()) manager.stopSound(name);
     }
 
+    /** Stops playback, detaches listeners, and removes managed sounds. */
     public function dispose():Void {
         stop();
         manager.removeEventListener(SoundStatusEvent.SOUND_LOADED,loaded);

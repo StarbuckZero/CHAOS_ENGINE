@@ -22,7 +22,7 @@ import openfl.events.Event;
 import openfl.events.EventDispatcher;
 
 /**
-* Event Dispatch system for the engine
+* Forwards UI events through the engine's shared event dispatcher.
 * 
 * @author Erick Feiling
 */
@@ -33,25 +33,30 @@ class CommandDispatch
     private static var eventList:haxe.ds.ObjectMap<IBaseUI, Array<String>> = new haxe.ds.ObjectMap();
     private static var _eventDispatcher : EventDispatcher = new EventDispatcher();
     
+    /** Creates a command dispatcher instance; event state is shared statically. */
     public function new()
     {
     }
     
+    /** Dispatches an engine event for an element with the supplied payload. */
     public static function dispatch(elementName : String, eventType : String, eventData : Dynamic) : Void
     {
         _eventDispatcher.dispatchEvent(new EngineDispatchEvent(EngineDispatchEvent.ENGINE_DISPATCH, elementName, eventType, eventData));
     }
     
+    /** Registers a callback for engine events. */
     public static function addEngineListener(callBack : Dynamic->Void) : Void
     {
         _eventDispatcher.addEventListener(EngineDispatchEvent.ENGINE_EVENT, callBack);
     }
     
+    /** Removes a previously registered engine event callback. */
     public static function removeEngineListener(callBack : Dynamic->Void) : Void
     {
         _eventDispatcher.removeEventListener(EngineDispatchEvent.ENGINE_EVENT, callBack);
     }
     
+    /** Forwards an element event type once, avoiding duplicate listeners. */
     public static function attachEvent(element:IBaseUI, eventType:String):Void {
         var events = eventList.get(element);
         if (events == null) { events = []; eventList.set(element, events); }
@@ -60,6 +65,7 @@ class CommandDispatch
         element.addEventListener(eventType, triggerEvent);
     }
 
+    /** Stops forwarding one event type from an element. */
     public static function removeEvent(element:IBaseUI, eventType:String):Void {
         element.removeEventListener(eventType, triggerEvent);
         var events = eventList.get(element);
@@ -68,6 +74,7 @@ class CommandDispatch
         if (events.length == 0) eventList.remove(element);
     }
 
+    /** Stops forwarding every registered event type from an element. */
     public static function removeAllEvents(element:IBaseUI):Void {
         var events = eventList.get(element);
         if (events == null) return;

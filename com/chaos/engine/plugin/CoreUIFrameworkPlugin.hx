@@ -118,7 +118,7 @@ import openfl.events.MouseEvent;
 import openfl.events.ProgressEvent;
 
 /**
-* All of the UI elements
+* Registers constructors and commands for CHAOS UI components.
 * @author Erick Feiling
 */
 class CoreUIFrameworkPlugin
@@ -131,11 +131,13 @@ class CoreUIFrameworkPlugin
     
     private var _eventDispatcher : EventDispatcher = new EventDispatcher();
     
+    /** Creates a UI framework plugin; registration uses static methods. */
     public function new()
     {
     }
     
-    // Core UI Classes
+    // Core UI components
+    /** Registers UI component creation commands with CommandCentral. */
     public static function initialize() : Void
     {
         CommandCentral.addPluginName("CoreUIFrameworkPlugin", 1.0);

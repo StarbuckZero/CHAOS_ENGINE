@@ -8,7 +8,7 @@ import openfl.events.IEventDispatcher;
 import com.chaos.engine.CommandCentral;
 import com.chaos.engine.plugin.CoreCommandPlugin;
 
-/** One instance per display runtime. Commands receive resolved targets, never global lookup results. */
+/** Binds configured display events to engine commands within one runtime. */
 class EventPlugin {
     private static var instances:Array<EventPlugin> = [];
     /** Detach listeners owned by a removed/replaced display subtree in every active runtime. */
@@ -32,30 +32,41 @@ class EventPlugin {
         commandAdapters.set(Json.stringify([plugin, command]), adapter);
     }
 
+    /** Removes a command payload adapter registered for a plugin and command. */
     public static function removeCommandAdapter(plugin:String, command:String):Void {
         commandAdapters.remove(Json.stringify([plugin, command]));
     }
 
+    /** Sound action handler owned by this runtime. */
     public var audio(default, null):EventAudio = new EventAudio();
+    public var serverEvents(default, null):ServerEventPlugin = new ServerEventPlugin();
+    /** Whether configured event actions may run. */
     public var enabled:Bool = true;
+    /** Callback used to report action and resolution errors. */
     public var report:String->Void;
+    /** Callback invoked after an action executes. */
     public var afterAction:Void->Void;
+    /** Scope used to resolve targets relative to this runtime. */
     public var ownerScope:Dynamic = {type:"DisplayEngine", name:""};
     private var root:DisplayObjectContainer;
     private var listeners:Map<String, Array<{receiver:IEventDispatcher, name:String, callback:Event->Void}>> = new Map();
     private var executing:Bool = false;
 
+    /** Registers an event runtime rooted at a display container. */
     public function new(root:DisplayObjectContainer) {
         this.root = root;
         instances.push(this);
         audio.report = function(message) report(message);
+        serverEvents.report = function(message) report(message);
         report = function(message) { trace(message); };
     }
 
+    /** Detaches every event listener installed by this runtime. */
     public function clear():Void {
         for (key in listeners.keys()) remove(key);
     }
 
+    /** Replaces active listeners with all configurations in the store. */
     public function refresh(store:EventConfigurationStore):Void {
         clear();
         for (config in store.all()) replace(config);
@@ -76,7 +87,8 @@ class EventPlugin {
         clear();
     }
 
-    public function dispose():Void { instances.remove(this); audio.dispose(); clear(); enabled = false; root = null; afterAction = null; }
+    /** Unregisters this runtime and releases its audio and event listeners. */
+    public function dispose():Void { instances.remove(this); audio.dispose(); serverEvents.dispose(); clear(); enabled = false; root = null; afterAction = null; }
 
     private function remove(key:String):Void {
         var entries = listeners.get(key);
@@ -110,13 +122,14 @@ class EventPlugin {
         return found[0];
     }
 
+    /** Rebinds listeners for one validated event configuration. */
     public function replace(config:Dynamic):Void {
         var key = Json.stringify([config.scope.type, config.scope.name, config.name]);
         remove(key);
         var entries:Array<{receiver:IEventDispatcher, name:String, callback:Event->Void}> = [];
         listeners.set(key, entries);
         try {
-            if ((cast config.events:Array<Dynamic>).length == 0) return;
+            if ((cast config.events:Array<Dynamic>).length == 0 && (config.serverEvents == null || config.serverEvents.enabled != true)) return;
             var source = resolve(config.name, config.scope);
             var capability:Dynamic = Reflect.field(EventCapabilities.catalog, config.componentType);
             if (capability == null) throw 'Unsupported component ' + config.componentType;
@@ -131,8 +144,14 @@ class EventPlugin {
                 if (seen.exists(event.type)) throw 'Duplicate event ' + event.type;
                 seen.set(event.type, true);
             }
-            for (event in (cast config.events:Array<Dynamic>)) {
-                if (event.enabled == false) continue;
+            var events:Array<Dynamic> = cast config.events;
+            events = events.copy();
+            if (config.serverEvents != null && config.serverEvents.enabled == true)
+                for (binding in (cast capability.events:Array<Dynamic>))
+                    if (!seen.exists(binding.type)) events.push({type:binding.type, enabled:false, actions:[]});
+            for (event in events) {
+                if (event.enabled == false && (config.serverEvents == null || config.serverEvents.enabled != true
+                    || (config.serverEvents.events != null && Reflect.field(config.serverEvents.events, event.type) == false))) continue;
                 var binding:Dynamic = null;
                 for (candidate in (cast capability.events:Array<Dynamic>)) if (candidate.type == event.type) binding = candidate;
                 if (binding == null) { report('EventPlugin ' + key + ': unsupported event ' + event.type); continue; }
@@ -144,7 +163,10 @@ class EventPlugin {
                     // Detached/replaced sources must never keep executing old configurations.
                     try { if (resolve(config.name, config.scope) != source) return; } catch (_:Dynamic) { return; }
                     executing = true;
-                    try { execute(config, event, incoming); } catch (error:Dynamic) { report('EventPlugin ' + key + ': ' + Std.string(error)); }
+                    try { serverEvents.send(source, config.componentType, event.type, incoming, config.serverEvents); }
+                    catch (error:Dynamic) { report('EventPlugin ' + key + ': ' + Std.string(error)); }
+                    try { if (event.enabled != false) execute(config, event, incoming); }
+                    catch (error:Dynamic) { report('EventPlugin ' + key + ': ' + Std.string(error)); }
                     executing = false;
                 };
                 receiver.addEventListener(binding.eventName, callback);

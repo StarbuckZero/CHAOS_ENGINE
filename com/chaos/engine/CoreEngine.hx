@@ -15,14 +15,17 @@ import openfl.display.DisplayObject;
 import openfl.display.Sprite;
 
 /**
-* This is the core or base for the engine.
+* Provides the engine display area, command dispatch, and data reader.
 * @author Erick Feiling
 */
 
 class CoreEngine extends Sprite
 {
+    /** Whether the background shape is visible. */
     public var useBackground (get, set) : Bool;
+    /** Fill color used when the background shape is redrawn. */
     public var backgroundColor(get, set):Int;
+    /** Reader that parses incoming engine data. */
     public var reader(get, never) : IReader;
 
     private var _reader : IReader;
@@ -33,13 +36,14 @@ class CoreEngine extends Sprite
     private var _backgroundColor : Int = 0;
 
     /**
-    * Where all UI objects are displayed
+    * Sprite that contains engine display objects.
     */
     
     public var displayArea : Sprite;
     
     private var _currentLayer : Sprite;
     
+    /** Sets up the background, JSON reader, and engine event listener. */
     public function new()
     {
         super();
@@ -110,8 +114,8 @@ class CoreEngine extends Sprite
     
     
     /**
-    * The data that is coming back from reader. Override if need be.
-    * @param	dataObj A normal object
+    * Runs each command parsed by the reader and dispatches item-created events.
+    * @param dataObj An object whose fields are command names and payloads.
     */
     public function onDataPaser(dataObj : Dynamic) : Void
     {
@@ -137,8 +141,8 @@ class CoreEngine extends Sprite
     }
     
     /**
-    * The data that is cause an error
-    * @param	dataObj A normal object
+    * Reports a reader or command error by dispatching a parser-failure event.
+    * @param dataObj The data associated with the failure.
     */
     
     public function onPaserError(dataObj : Dynamic) : Void
@@ -150,6 +154,7 @@ class CoreEngine extends Sprite
         dispatchEvent(new CoreEngineEvent(CoreEngineEvent.PASER_FAIL));
     }
     
+    /** Prints a received engine event and its data fields for debugging. */
     public function onEngineEvent(event : EngineDispatchEvent) : Void
     {
         Debug.print("[CoreEngine::onEngineEvent] Event: " + event.eventType + " Element: " + event.elementName);
@@ -166,8 +171,8 @@ class CoreEngine extends Sprite
 
 
     /**
-    * Make it so the background layer is visible
-    * @param	value show or hide background
+    * Sets the background flag and redraws the shape.
+    * @param value Whether the background should be shown.
     */
 
 	public function setBackground ( value:Bool ) :Void {
@@ -176,8 +181,8 @@ class CoreEngine extends Sprite
 	}    
 
     /**
-    * Change the color of the background layer
-    * @param	value color of layer
+    * Changes the background fill color and redraws the shape.
+    * @param value New background color.
     */
 
 	public function setBackgroundColor ( value:Int ) :Void {

@@ -8,7 +8,7 @@ import com.chaos.ui.UIBitmapManager.UIBitmapType;
 import com.chaos.media.DisplayImage;
 
 /**
-* Skin all UI classes in the CHAOS framework
+* Applies named bitmap and style values to CHAOS UI components.
 * @author Erick Feiling
 * 
 *    {
@@ -21,9 +21,12 @@ import com.chaos.media.DisplayImage;
 
 class ThemeSystem
 {
+    /** UI elements tracked for theme updates. */
     public static var uiList : Array<Dynamic>;
+    /** Creates a theme-system instance; theme operations use static methods. */
     public function new(){}
     
+    /** Registers a bitmap under the UI component type inferred from its style key. */
     public static function setBitmap(style : String, image:BitmapData) : Void
     {
         if (style == null || style == "" || image == null)
@@ -79,7 +82,7 @@ class ThemeSystem
             UIBitmapManager.setUIElement(bitmapType, key, image);
     }
     /**
-    * Update all bitmaps
+    * Rebuilds all registered UI bitmap elements.
     */
     public static function updateAllElement() : Void
     {
@@ -91,6 +94,7 @@ class ThemeSystem
         }
     }
     
+    /** Stores a named shared style value using an uppercase key. */
     public static function setStyle(name : String, value : Dynamic) : Void
     {
         if (name == null || name == "")
@@ -99,6 +103,7 @@ class ThemeSystem
         UIStyleManager.setStyle(name.toUpperCase(), value);
     }
     
+    /** Applies a named alert style to its shared style property. */
     public static function setAlertStyle(name : String, value : Dynamic) : Void
     {
         if (name == "ALERT_BACKGROUND_COLOR")
@@ -313,6 +318,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named bubble style to its shared style property. */
     public static function setBubbleStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -337,6 +343,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named button style to its shared style property. */
     public static function setButtonStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -412,6 +419,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named checkbox style to its shared style property. */
     public static function setCheckBoxStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -455,6 +463,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named radio button style to its shared style property. */
     public static function setRadioStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -507,11 +516,13 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named combo box style to its shared style property. */
     public static function setComboStyle(name : String, value : Dynamic) : Void
     {
         UIStyleManager.setStyle(name, value);
     }
     
+    /** Applies a named grid style to its shared style property. */
     public static function setGridStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -563,6 +574,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named list style to its shared style property. */
     public static function setListStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -609,6 +621,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named label style to its shared style property. */
     public static function setLabelStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -656,6 +669,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named input style to its shared style property. */
     public static function setInputStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -710,6 +724,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named progress bar style to its shared style property. */
     public static function setProgressBarStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -758,6 +773,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named progress slider style to its shared style property. */
     public static function setProgressSliderStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -827,6 +843,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named scroll bar style to its shared style property. */
     public static function setScrollBarStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -875,6 +892,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named slider style to its shared style property. */
     public static function setSliderStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -908,6 +926,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named scroll pane style to its shared style property. */
     public static function setScrollPaneStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -941,6 +960,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named item pane style to its shared style property. */
     public static function setItemPaneStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -1029,6 +1049,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named tab pane style to its shared style property. */
     public static function setTabPaneStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -1086,6 +1107,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named tooltip style to its shared style property. */
     public static function setToolTipStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -1131,6 +1153,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named window style to its shared style property. */
     public static function setWindowStyle(name : String, value : Dynamic) : Void
     {
         switch (name)
@@ -1218,6 +1241,7 @@ class ThemeSystem
         }
     }
     
+    /** Applies a named menu style to its shared style property. */
     public static function setMenuStyle(name : String, value : Dynamic) : Void
     {
         switch (name)

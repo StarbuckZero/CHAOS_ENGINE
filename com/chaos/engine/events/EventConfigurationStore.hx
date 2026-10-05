@@ -2,15 +2,19 @@ package com.chaos.engine.events;
 
 import haxe.Json;
 
-/** Instance-owned configuration transport. No display objects or listeners are retained. */
+/** Stores validated event configurations and pending commands for one runtime. */
 class EventConfigurationStore {
+    /** Command name used to submit an event configuration to the engine. */
     public static inline var COMMAND:String = "SetComponentEvents";
     private var pending:Map<String, Dynamic> = new Map();
     private var configurations:Map<String, Dynamic> = new Map();
 
+    /** Callback invoked after an accepted configuration changes. */
     public var onChanged:Dynamic->Void;
+    /** Creates an empty event configuration store. */
     public function new() {}
 
+    /** Parses and queues valid JSON configuration, returning false on invalid input. */
     public function enqueue(json:String):Bool {
         try {
             var data:Dynamic = Json.parse(json);
@@ -20,6 +24,7 @@ class EventConfigurationStore {
         } catch (error:Dynamic) { return false; }
     }
 
+    /** Returns queued command objects and clears the pending queue. */
     public function takePendingCommands():Array<Dynamic> {
         var commands:Array<Dynamic> = [];
         for (data in pending) {
@@ -42,6 +47,7 @@ class EventConfigurationStore {
         return null;
     }
 
+    /** Saves a valid configuration and optionally notifies the change callback. */
     public function accept(data:Dynamic, notify:Bool = true):Bool {
         if (!valid(data)) return false;
         configurations.set(key(data.scope, data.name), copy(data));
@@ -49,15 +55,18 @@ class EventConfigurationStore {
         return true;
     }
 
+    /** Returns a copy of the configuration identified by scope and name. */
     public function get(scope:Dynamic, name:String):Dynamic {
         var data:Dynamic = configurations.get(key(scope, name));
         return data == null ? null : copy(data);
     }
 
+    /** Returns copies of every accepted configuration. */
     public function all():Array<Dynamic> {
         return [for (data in configurations) copy(data)];
     }
 
+    /** Removes matching accepted and pending configurations. */
     public function remove(scope:Dynamic, name:String):Void {
         var id = key(scope, name);
         pending.remove(id);
@@ -77,6 +86,7 @@ class EventConfigurationStore {
         }
     }
 
+    /** Renames a scope and matching action targets in accepted and pending data. */
     public function renameScope(type:String, oldName:String, newName:String):Void {
         for (map in [configurations, pending]) {
             var entries = [for (data in map) data];
@@ -92,6 +102,7 @@ class EventConfigurationStore {
         }
     }
 
+    /** Clears all accepted configurations and pending commands. */
     public function clear():Void {
         pending = new Map();
         configurations = new Map();
@@ -118,6 +129,7 @@ class EventConfigurationStore {
     private static function copy(data:Dynamic):Dynamic {
         // Exclude dispatcher-injected runtime fields from the stored snapshot.
         return Json.parse(Json.stringify({schemaVersion: 1, name: data.name, componentType: data.componentType,
-            scope: {type: data.scope.type, name: data.scope.name}, events: data.events}));
+            scope: {type: data.scope.type, name: data.scope.name}, events: data.events,
+            serverEvents: data.serverEvents}));
     }
 }

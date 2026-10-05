@@ -10,8 +10,9 @@ import openfl.display.DisplayObject;
 import openfl.display.DisplayObjectContainer;
 import openfl.display.BitmapData;
 
-/** Runtime-only chart registration; Studio factories and panels are independent. */
+/** Registers chart commands and event capabilities for the engine runtime. */
 class CoreChartSupport {
+    /** Chart component names supported by the engine. */
     public static var types(default, null):Array<String> = ["ColumnChart", "BarChart", "GroupedBarChart", "StackedBarChart", "LineChart", "AreaChart", "ScatterPlot", "PieChart", "DonutChart", "Histogram", "Heatmap"];
 
     private static var pendingBuilds:haxe.ds.ObjectMap<DisplayObject, {id:String, task:com.chaos.utils.classInterface.ITask}> = new haxe.ds.ObjectMap();
@@ -27,6 +28,7 @@ class CoreChartSupport {
         com.chaos.utils.ThreadManager.addTask(id, task);
     }
 
+    /** Registers chart constructors and supported chart events. */
     public static function initialize():Void {
         var names = ["Rollover", "Rollout", "MouseDown", "MouseUp", "Clicked", "OnChange"];
         var events = [ChartEvent.ROLL_OVER, ChartEvent.ROLL_OUT, ChartEvent.MOUSE_DOWN, ChartEvent.MOUSE_UP, ChartEvent.CLICK, ChartEvent.CHANGE];
@@ -40,6 +42,7 @@ class CoreChartSupport {
         }
     }
 
+    /** Copies chart configuration while omitting engine-only command fields. */
     public static function componentData(data:Dynamic):Dynamic {
         var result:Dynamic = {};
         for (field in Reflect.fields(data))
