@@ -39,7 +39,7 @@ class EventPlugin {
 
     /** Sound action handler owned by this runtime. */
     public var audio(default, null):EventAudio = new EventAudio();
-    public var serverEvents(default, null):ServerEventPlugin = new ServerEventPlugin();
+    public var serverEvents(default, null):ServerEventService = new ServerEventService();
     /** Whether configured event actions may run. */
     public var enabled:Bool = true;
     /** Callback used to report action and resolution errors. */
