@@ -5,7 +5,7 @@ import openfl.display.DisplayObject;
 import openfl.events.Event;
 
 /** Sends the small, public event payload from a running CHAOS project. */
-class ServerEventPlugin {
+class ServerEventService {
     public var active:Bool = false;
     public var report:String->Void = function(message) trace(message);
     private var config:Dynamic;
@@ -71,8 +71,8 @@ class ServerEventPlugin {
                 if (active && generation == reconnectGeneration)
                     haxe.Timer.delay(function() { if (active && generation == reconnectGeneration) connect(); }, 2000);
             };
-            connection.onerror = function(_) report("ServerEventPlugin: WebSocket connection failed");
-        } catch (error:Dynamic) { report("ServerEventPlugin: " + Std.string(error)); }
+            connection.onerror = function(_) report("ServerEventService: WebSocket connection failed");
+        } catch (error:Dynamic) { report("ServerEventService: " + Std.string(error)); }
         #end
     }
 
@@ -112,10 +112,10 @@ class ServerEventPlugin {
                 var request = new haxe.Http(config.restEndpoint);
                 request.setHeader("Content-Type", "application/json");
                 request.setPostData(body);
-                request.onError = function(error) report("ServerEventPlugin: " + error);
+                request.onError = function(error) report("ServerEventService: " + error);
                 request.request(true);
             }
-        } catch (error:Dynamic) { report("ServerEventPlugin: " + Std.string(error)); }
+        } catch (error:Dynamic) { report("ServerEventService: " + Std.string(error)); }
         #end
     }
 }
