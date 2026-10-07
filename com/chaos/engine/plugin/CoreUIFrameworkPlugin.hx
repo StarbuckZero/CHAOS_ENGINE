@@ -49,6 +49,7 @@ import com.chaos.ui.Accordion;
 import com.chaos.ui.TabPane;
 import com.chaos.ui.ScrollPane;
 import com.chaos.ui.Window;
+import com.chaos.ui.Frame;
 import com.chaos.ui.WindowManager;
 import com.chaos.ui.ProgressBar;
 
@@ -160,6 +161,7 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("TabPane", createTabPane);
         CommandCentral.addCommand("ScrollPane", createScrollPane);
         CommandCentral.addCommand("Window", createWindow);
+        CommandCentral.addCommand("Frame", createFrame);
         CommandCentral.addCommand("WindowManager", createWindowManager);
         CommandCentral.addCommand("ToolTip", updateToolTip);
         CommandCentral.addCommand("ProgressBar", createProgressBar);
@@ -282,6 +284,13 @@ class CoreUIFrameworkPlugin
             addScreenToWindow(componentData, cast(displayObj, IWindow));
             return displayObj;
         }        
+
+        if (Std.isOfType(displayObj, Frame))
+        {
+            CoreCommandPlugin.setComponentData(componentData, cast(displayObj, IBaseUI));
+            addScreenToFrame(componentData, cast(displayObj, Frame));
+            return displayObj;
+        }
 
         // -------------------------------------------------
         // Default update
@@ -600,6 +609,34 @@ class CoreUIFrameworkPlugin
         return windowManager;
     }
     
+    private static function createFrame(data:Dynamic):Dynamic
+    {
+        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+        var frame:Frame;
+        if (displayObj != null && Std.isOfType(displayObj, Frame))
+        {
+            frame = cast displayObj;
+            CoreCommandPlugin.setComponentData(data, frame);
+        }
+        else
+        {
+            frame = new Frame(data);
+            CoreCommandPlugin.displayUpdate(frame, data);
+        }
+        addScreenToFrame(data, frame);
+        return frame;
+    }
+
+    private static function addScreenToFrame(data:Dynamic, frame:Frame):Void
+    {
+        if (!Reflect.hasField(data, "screen")) return;
+        var screenName:String = Std.string(Reflect.field(data, "screen"));
+        if (screenName != "" && CoreFrameworkPlugin.hasScreen(screenName))
+            frame.scrollPane.source = cast(CoreCommandPlugin.getScreen(screenName), DisplayObject);
+        else
+            frame.scrollPane.source = null;
+    }
+
     private static function createWindow(data:Dynamic):Dynamic
     {
         var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
