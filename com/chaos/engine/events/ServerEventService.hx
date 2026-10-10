@@ -8,6 +8,8 @@ import openfl.events.Event;
 class ServerEventService {
     public var active:Bool = false;
     public var report:String->Void = function(message) trace(message);
+    /** Delivers the `data` object returned by the server to the runtime owner. */
+    public var onData:Dynamic->Void = function(_) {};
     private var config:Dynamic;
     #if js
     private var socket:js.html.WebSocket;
@@ -72,6 +74,9 @@ class ServerEventService {
                     haxe.Timer.delay(function() { if (active && generation == reconnectGeneration) connect(); }, 2000);
             };
             connection.onerror = function(_) report("ServerEventService: WebSocket connection failed");
+            connection.onmessage = function(message) {
+                if (active && socket == connection) receive(Std.string(message.data));
+            };
         } catch (error:Dynamic) { report("ServerEventService: " + Std.string(error)); }
         #end
     }
@@ -112,10 +117,25 @@ class ServerEventService {
                 var request = new haxe.Http(config.restEndpoint);
                 request.setHeader("Content-Type", "application/json");
                 request.setPostData(body);
+                request.onData = function(response) { if (active) receive(response); };
                 request.onError = function(error) report("ServerEventService: " + error);
                 request.request(true);
             }
         } catch (error:Dynamic) { report("ServerEventService: " + Std.string(error)); }
         #end
+    }
+
+    private function receive(response:String):Void {
+        try {
+            var envelope:Dynamic = Json.parse(response);
+            var data:Dynamic = Reflect.field(envelope, "data");
+            if (data == null || !Reflect.isObject(data) || Std.isOfType(data, Array)) {
+                report("ServerEventService: response must contain a data object");
+                return;
+            }
+            onData(data);
+        } catch (error:Dynamic) {
+            report("ServerEventService: invalid response JSON: " + Std.string(error));
+        }
     }
 }

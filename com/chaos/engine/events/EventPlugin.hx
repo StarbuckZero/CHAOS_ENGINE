@@ -58,6 +58,7 @@ class EventPlugin {
         instances.push(this);
         audio.report = function(message) report(message);
         serverEvents.report = function(message) report(message);
+        serverEvents.onData = applyServerEventData;
         report = function(message) { trace(message); };
     }
 
@@ -89,6 +90,21 @@ class EventPlugin {
 
     /** Unregisters this runtime and releases its audio and event listeners. */
     public function dispose():Void { instances.remove(this); audio.dispose(); serverEvents.dispose(); clear(); enabled = false; root = null; afterAction = null; }
+
+    /** Applies server-returned engine commands for adding or updating UI elements. */
+    private function applyServerEventData(data:Dynamic):Void {
+        for (command in Reflect.fields(data)) {
+            if (command != "AddLayerItem" && command != "UpdateItem") {
+                report('Server event response ignored unsupported command ' + command);
+                continue;
+            }
+            try {
+                CommandCentral.runCommand(command, Reflect.field(data, command));
+            } catch (error:Dynamic) {
+                report('Server event response ' + command + ' failed: ' + Std.string(error));
+            }
+        }
+    }
 
     private function remove(key:String):Void {
         var entries = listeners.get(key);
