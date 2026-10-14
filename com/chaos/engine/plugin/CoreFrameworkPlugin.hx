@@ -86,7 +86,7 @@ class CoreFrameworkPlugin
     
     private static function createContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, BaseContainer))
         {
@@ -112,7 +112,7 @@ class CoreFrameworkPlugin
 
     private static function addItemToContainer(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         var items:Array<Dynamic> = Reflect.field(data,"items");
 
         if (null != displayObj && Std.isOfType(displayObj, BaseContainer))
@@ -140,7 +140,7 @@ class CoreFrameworkPlugin
     
     private static function removeItemFromContainer(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         var itemNames:Array<String> = Reflect.field(data,"itemNames");
 
         var currentContainer : IBaseContainer = cast(displayObj, IBaseContainer);
@@ -161,7 +161,7 @@ class CoreFrameworkPlugin
 
     private static function createFitContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, FitContainer))
         {
@@ -190,7 +190,7 @@ class CoreFrameworkPlugin
     
     private static function createGridContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, GridContainer))
         {
@@ -219,7 +219,7 @@ class CoreFrameworkPlugin
     
     private static function createHorizontalContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, HorizontalContainer))
         {
@@ -246,7 +246,7 @@ class CoreFrameworkPlugin
     
     private static function createVerticalContainer(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, VerticalContainer))
         {
@@ -305,6 +305,11 @@ class CoreFrameworkPlugin
     
     private static function createElement(data : Dynamic) : Dynamic
     {
+        if (Reflect.field(data, "registerOnly") == true && Reflect.hasField(data, "name"))
+        {
+            Reflect.setField(element, Reflect.field(data, "name"), data);
+            return null;
+        }
         if (  Reflect.hasField(data,"name") && !Reflect.hasField(element, Reflect.field(data,"name")))
         {
             Reflect.setField(element, Reflect.field(data,"name"), data);
@@ -354,13 +359,14 @@ class CoreFrameworkPlugin
         {
             var item : Dynamic = Reflect.field(data,"item");
             var itemArray:Array<String> = Reflect.fields(item);
-            var newLayer : Sprite = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), Sprite);
+            var newLayer : Sprite = cast(CoreCommandPlugin.findDisplayObject(data), Sprite);
+            if (newLayer == null) return null;
             var displayObj : DisplayObject = null;
             
             // Run command on item at the root of data object
             for (i in 0...itemArray.length)
             {
-                displayObj = CommandCentral.runCommand(itemArray[i], Reflect.field(item, itemArray[i]) );
+                displayObj = CommandCentral.runCommand(itemArray[i], Reflect.field(item, itemArray[i]), newLayer);
             }
             
             // Add item to the layer
@@ -380,7 +386,7 @@ class CoreFrameworkPlugin
     
     private static function removeLayer(data : Dynamic) : DisplayObject
     {
-        var oldLayer : BaseUI = cast(Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name")), BaseUI); //cast(getScreen(data), BaseUI);
+        var oldLayer : BaseUI = cast(CoreCommandPlugin.findDisplayObject(data), BaseUI); //cast(getScreen(data), BaseUI);
         
         if (oldLayer == null) return null;
         CoreChartSupport.disposeTree(oldLayer);
@@ -457,10 +463,22 @@ class CoreFrameworkPlugin
     /** Builds the named element from its stored definition, if present. */
     public static function getElement(data : Dynamic) : DisplayObject
     {
-        if ( Reflect.hasField(data,"name") && Reflect.hasField(element, Reflect.field(data,"name")))
-            return cast(buildElement(Reflect.field(element, Reflect.field(data,"name"))), DisplayObject);
+        var definitionName:String = Reflect.hasField(data, "element") ? Reflect.field(data, "element") : Reflect.field(data, "name");
+        if (definitionName != null && Reflect.hasField(element, definitionName))
+        {
+            var definition:Dynamic = Reflect.copy(Reflect.field(element, definitionName));
+            if (Reflect.hasField(data, "element"))
+            {
+                Reflect.setField(definition, "name", Reflect.field(data, "name"));
+                if (Reflect.hasField(data, "x")) Reflect.setField(definition, "x", Reflect.field(data, "x"));
+                if (Reflect.hasField(data, "y")) Reflect.setField(definition, "y", Reflect.field(data, "y"));
+            }
+            var instance:DisplayObject = cast(buildElement(definition), DisplayObject);
+            if (Reflect.hasField(data, "element")) CoreCommandPlugin.getDisplayObject(data).addChild(instance);
+            return instance;
+        }
         
-        Debug.print("[CoreFrameworkPlugin::getElement] Didn't find element " + Reflect.field(data,"name") + ".");
+        Debug.print("[CoreFrameworkPlugin::getElement] Didn't find element " + definitionName + ".");
         
         return null;
     }
@@ -503,7 +521,7 @@ class CoreFrameworkPlugin
         if(!Reflect.hasField(data,"height"))
             Reflect.setField(data,"height",300);
                 
-        var items:Array<Dynamic> = Reflect.field(data,"items");
+        var items:Array<Dynamic> = Reflect.hasField(data, "items") ? Reflect.field(data, "items") : [];
         var newElement : IBaseUI = new BaseUI(data);
                 
         // Add items in the background

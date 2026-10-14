@@ -61,6 +61,15 @@ class CoreCommandPlugin
                 return Global.mainDisplyArea;    
         }
     }
+
+    /** Finds a named object within the supplied parent, or on the main canvas. */
+    public static function findDisplayObject(data:Dynamic):DisplayObject
+    {
+        var area:DisplayObject = Reflect.hasField(data, "displayArea") && Reflect.field(data, "displayArea") != null
+            ? Reflect.field(data, "displayArea") : Global.mainDisplyArea;
+        return Utils.getNestedChild(area, Reflect.field(data, "name"));
+    }
+
     
     /** Applies component data and optionally redraws the UI object. */
     public static function setComponentData(data : Dynamic, UIObject : IBaseUI) : Void

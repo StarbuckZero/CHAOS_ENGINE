@@ -208,7 +208,7 @@ class CoreUIFrameworkPlugin
     
     private static function getItem(data : Dynamic) : Dynamic
     {
-        return Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        return CoreCommandPlugin.findDisplayObject(data);
     }
     
     private static function updateItem(data:Dynamic):Dynamic
@@ -302,7 +302,7 @@ class CoreUIFrameworkPlugin
      
     private static function removeItem(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if(displayObj == null) return null;
         CoreChartSupport.disposeTree(displayObj);
@@ -330,7 +330,7 @@ class CoreUIFrameworkPlugin
 
     private static function createBreadcrumb(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Breadcrumb))
         {
@@ -355,7 +355,7 @@ class CoreUIFrameworkPlugin
 
     private static function createCarousel(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Carousel))
         {
@@ -379,7 +379,7 @@ class CoreUIFrameworkPlugin
 
     private static function createButtonList(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, MobileButtonList))
         {
@@ -403,7 +403,7 @@ class CoreUIFrameworkPlugin
 
     private static function createNavigationMenu(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Carousel))
         {
@@ -427,7 +427,7 @@ class CoreUIFrameworkPlugin
 
     private static function createMobileDropDown(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, MobileDropDown))
         {
@@ -451,7 +451,7 @@ class CoreUIFrameworkPlugin
 
     private static function createToggleSwitch(data : Dynamic) : Dynamic {
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ToggleSwitch))
         {
@@ -502,7 +502,7 @@ class CoreUIFrameworkPlugin
     
     private static function createForm(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, FormBuilder))
         {
@@ -531,7 +531,7 @@ class CoreUIFrameworkPlugin
     
     private static function createProgressBar(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ProgressBar))
         {
@@ -611,7 +611,7 @@ class CoreUIFrameworkPlugin
     
     private static function createFrame(data:Dynamic):Dynamic
     {
-        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+        var displayObj:DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         var frame:Frame;
         if (displayObj != null && Std.isOfType(displayObj, Frame))
         {
@@ -639,7 +639,7 @@ class CoreUIFrameworkPlugin
 
     private static function createWindow(data:Dynamic):Dynamic
     {
-        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+        var displayObj:DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (null != displayObj && Std.isOfType(displayObj, Window))
         {
@@ -730,7 +730,7 @@ class CoreUIFrameworkPlugin
     
     private static function createAccordion(data:Dynamic):Dynamic
     {
-        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+        var displayObj:DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (displayObj != null && Std.isOfType(displayObj, Accordion))
         {
@@ -750,7 +750,7 @@ class CoreUIFrameworkPlugin
 
     private static function createTabPane(data:Dynamic):Dynamic
     {
-        var displayObj:DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data, "name"));
+        var displayObj:DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (null != displayObj && Std.isOfType(displayObj, TabPane))
         {
@@ -778,7 +778,7 @@ class CoreUIFrameworkPlugin
     
     private static function createScrollPane(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ScrollPane))
         {
@@ -814,7 +814,7 @@ class CoreUIFrameworkPlugin
     
     private static function createButton(data : Dynamic) : Dynamic
     {        
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (displayObj != null && Std.isOfType(displayObj, Button))
         {
@@ -838,7 +838,7 @@ class CoreUIFrameworkPlugin
     
     private static function createToggleButton(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (displayObj != null && Std.isOfType(displayObj, ToggleButton))
             {
@@ -863,7 +863,7 @@ class CoreUIFrameworkPlugin
     
     private static function createMenu(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Menu))
         {
@@ -890,7 +890,7 @@ class CoreUIFrameworkPlugin
     
     private static function createGridPane(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, GridPane))
         {
@@ -925,7 +925,7 @@ class CoreUIFrameworkPlugin
     
     private static function createSlider(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Slider))
         {
@@ -950,7 +950,7 @@ class CoreUIFrameworkPlugin
 
     private static function createScrollBar(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (null != displayObj && Std.isOfType(displayObj, ScrollBar))
         {
@@ -1005,7 +1005,7 @@ class CoreUIFrameworkPlugin
     
     private static function createLabel(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, Label))
         {
@@ -1029,7 +1029,7 @@ class CoreUIFrameworkPlugin
     
     private static function createTextInput(data : Dynamic) : Dynamic
     {
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name") );
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, TextInput))
         {
@@ -1063,7 +1063,7 @@ class CoreUIFrameworkPlugin
     {
         //{"RadioButton":{"name":"radioButtonGroup","group":"groupName","width":200,"height":300,"items":[{"name":"Radio2","text":"Radio 1","selected":false},{"name":"Radio2","text":"Radio 2","selected":false},{"name":"Radio3","text":"Radio 3","selected":false}]}}
         
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, RadioButtonGroup))
         {
@@ -1097,7 +1097,7 @@ class CoreUIFrameworkPlugin
     {
         //{"CheckBox":{"name":"checkBoxGroup","group":"checkGroup","width":200,"height":300,"items":[{"name":"check1","text":"Check 1","selected":false},{"name":"check2","text":"Check 2","selected":true},{"name":"check3","text":"Check 3","selected":false}]}}
         
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
 
         if (null != displayObj && Std.isOfType(displayObj, CheckBoxGroup)) 
         {
@@ -1125,7 +1125,7 @@ class CoreUIFrameworkPlugin
     {
         // {"ComboBox":{"name":"OSDropDown","width":100,"height":20,"items":[{"id":1,"text":"Linux","value":"Linux","selected":false},{"id":2,"text":"Windows","value":"Win","selected":false},{"id":3,"text":"Mac","value":"OSX","selected":false}]}}
         
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, Reflect.field(data,"name"));
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ComboBox))
         {
@@ -1152,7 +1152,7 @@ class CoreUIFrameworkPlugin
     {
         // {"List":{"name":"OSDropDown","width":100,"height":20,"data":[{"id":1,"text":"Linux","value":"Linux","selected":false},{"id":2,"text":"Windows","value":"Win","selected":false},{"id":3,"text":"Mac","value":"OSX","selected":false}]}}
 
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ListBox))
         {
@@ -1179,7 +1179,7 @@ class CoreUIFrameworkPlugin
     {
         // {"ItemPane":{"name":"ImageGallery","width":400,"height":300,"data":[{"id":1,"text":"Photo 1","value":"1","tooltip":"Photo 1","selected":false},{"id":2,"text":"Photo 2","value":"2","tooltip":"Photo 2","selected":false},{"id":3,"text":"Photo 3","tooltip":"Photo 2","value":"3","selected":false}]}}
         
-        var displayObj : DisplayObject = Utils.getNestedChild(Global.mainDisplyArea, data.name);
+        var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);
         
         if (null != displayObj && Std.isOfType(displayObj, ItemPane))
         {
