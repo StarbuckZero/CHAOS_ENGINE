@@ -1,6 +1,14 @@
 package com.chaos.engine;
 
 
+import com.chaos.engine.events.EventCapabilities;
+import com.chaos.engine.events.EventConfigurationStore;
+import com.chaos.engine.events.EventPlugin;
+#if sys
+import haxe.io.Path;
+import sys.io.File;
+#end
+
 import openfl.events.Event;
 import openfl.display.Shape;
 import com.chaos.engine.event.EngineDispatchEvent;
@@ -42,9 +50,11 @@ class CoreEngine extends Sprite
     public var displayArea : Sprite;
     
     private var _currentLayer : Sprite;
+    private var eventConfigurations:EventConfigurationStore;
+    private var eventPlugin:EventPlugin;
     
-    /** Sets up the background, JSON reader, and engine event listener. */
-    public function new()
+    /** Sets up the engine. Authoring hosts can opt out of automatic project startup. */
+    public function new(autoLoadProject:Bool = true)
     {
         super();
         
@@ -71,6 +81,97 @@ class CoreEngine extends Sprite
         
         // For all UI events
         CommandDispatch.addEngineListener(onEngineEvent);
+
+        // Wait until subclass constructors have registered their plugins.
+        if (autoLoadProject) addEventListener(Event.ADDED_TO_STAGE, startRuntime);
+    }
+
+    private function startRuntime(event:Event):Void {
+        removeEventListener(Event.ADDED_TO_STAGE, startRuntime);
+        eventConfigurations = new EventConfigurationStore();
+        eventPlugin = new EventPlugin(displayArea);
+        eventPlugin.afterAction = function() eventPlugin.refresh(eventConfigurations);
+        displayArea.addEventListener(Event.ADDED, function(event) {
+            if (Std.isOfType(event.target, com.chaos.ui.chart.ChartBase))
+                eventPlugin.refresh(eventConfigurations);
+        });
+
+        #if sys
+        // Resolve project.json and asset paths beside the executable, regardless of launch directory.
+        Sys.setCwd(Path.directory(Sys.programPath()));
+        var projectData = File.getContent("project.json");
+        #if desktop
+        configureWindow(haxe.Json.parse(projectData).runtime);
+        #end
+        reader.setData(projectData);
+        #else
+        reader.load(js.Syntax.code("window.CHAOS_PROJECT_URL || 'project.json'"));
+        #end
+    }
+
+    #if desktop
+    private function configureWindow(config:Dynamic):Void {
+        // Older exports have no runtime block and retain their existing startup behavior.
+        if (config == null) return;
+        var width:Float = config.width;
+        var height:Float = config.height;
+        if (!Math.isFinite(width) || !Math.isFinite(height) || width <= 0 || height <= 0
+            || width != Math.floor(width) || height != Math.floor(height)
+            || width > 2147483647 || height > 2147483647)
+            throw "Desktop window dimensions must be positive integers.";
+        var logicalWidth = Std.int(width);
+        var logicalHeight = Std.int(height);
+        var window = stage.window;
+        // OpenFL exposes logical sizing internally; SHOW_ALL preserves layout and aspect ratio.
+        @:privateAccess stage.__setLogicalSize(logicalWidth, logicalHeight);
+        stage.scaleMode = openfl.display.StageScaleMode.SHOW_ALL;
+        stage.align = openfl.display.StageAlign.TOP_LEFT;
+        var restore = function() {
+            window.resize(logicalWidth, logicalHeight);
+            var display = lime.system.System.getDisplay(0);
+            if (display != null) {
+                var bounds = display.bounds;
+                window.move(Std.int(bounds.x + (bounds.width - window.width) / 2),
+                    Std.int(bounds.y + (bounds.height - window.height) / 2));
+            }
+        };
+        window.fullscreen = false;
+        restore();
+        stage.addEventListener(openfl.events.KeyboardEvent.KEY_DOWN, function(event:openfl.events.KeyboardEvent) {
+            if (event.altKey && event.keyCode == openfl.ui.Keyboard.ENTER) {
+                window.fullscreen = !window.fullscreen;
+                if (!window.fullscreen) restore();
+            }
+        });
+        stage.addEventListener(openfl.events.FullScreenEvent.FULL_SCREEN, function(event:openfl.events.FullScreenEvent) {
+            if (!event.fullScreen) restore();
+        });
+        if (config.fullscreen == true) window.fullscreen = true;
+    }
+    #end
+
+    private function captureRuntimeEventDefinitions(data:Dynamic, scope:Dynamic):Void {
+        if (data == null || !Reflect.isObject(data)) return;
+        if (Std.isOfType(data, Array)) {
+            for (item in (cast data:Array<Dynamic>)) captureRuntimeEventDefinitions(item, scope);
+            return;
+        }
+        for (type in Reflect.fields(data)) {
+            var value:Dynamic = Reflect.field(data, type);
+            if (value == null || !Reflect.isObject(value)) continue;
+            if (type == "items") { captureRuntimeEventDefinitions(value, scope); continue; }
+            if (type == "AddLayerItem") { captureRuntimeEventDefinitions(value.item, scope); continue; }
+            if (type == "ContainerAddItem") { captureRuntimeEventDefinitions(value.items, scope); continue; }
+            var childScope:Dynamic = scope;
+            if (type == "Screen" || type == "Element") childScope = {type:type, name:value.name};
+            if (Reflect.hasField(EventCapabilities.catalog, type) && Std.isOfType(value.name, String))
+                eventConfigurations.accept({schemaVersion:1, name:value.name, componentType:type,
+                    scope:scope, events:Reflect.hasField(value, "events") ? value.events : [],
+                    serverEvents:Reflect.field(value, "serverEvents")}, false);
+            if (type == "Layer" || type == "Screen" || type == "Element"
+                || Reflect.hasField(EventCapabilities.catalog, type))
+                captureRuntimeEventDefinitions(Reflect.field(value, "items"), childScope);
+        }
     }
 
     private function onResize(event:Event = null) : Void {
@@ -119,6 +220,12 @@ class CoreEngine extends Sprite
     */
     public function onDataPaser(dataObj : Dynamic) : Void
     {
+        if (eventPlugin != null && dataObj != null && Reflect.hasField(dataObj, "SetServerEvents")) {
+            if (eventPlugin.serverEvents.configure(haxe.Json.stringify(Reflect.field(dataObj, "SetServerEvents"))))
+                eventPlugin.serverEvents.start();
+            else trace("Invalid server event settings");
+            return;
+        }
         var object : Dynamic;
         
         for (index in Reflect.fields(dataObj))
@@ -139,6 +246,10 @@ class CoreEngine extends Sprite
             {
                 onPaserError(Reflect.field(dataObj, index));
             }
+        }
+        if (eventPlugin != null) {
+            captureRuntimeEventDefinitions(dataObj, {type:"DisplayEngine", name:""});
+            eventPlugin.refresh(eventConfigurations);
         }
     }
     
