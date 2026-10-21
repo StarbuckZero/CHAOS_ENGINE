@@ -34,6 +34,8 @@ import com.chaos.ui.CheckBoxGroup;
 import com.chaos.ui.ComboBox;
 import com.chaos.ui.Label;
 import com.chaos.ui.TextInput;
+import com.chaos.ui.DatePicker;
+import com.chaos.ui.Calendar;
 import com.chaos.ui.ToolTip;
 import com.chaos.ui.ListBox;
 import com.chaos.ui.RadioButtonGroup;
@@ -152,6 +154,8 @@ class CoreUIFrameworkPlugin
         CommandCentral.addCommand("ItemPane", createItemPane);
         CommandCentral.addCommand("Label", createLabel);
         CommandCentral.addCommand("TextInput", createTextInput);
+        CommandCentral.addCommand("DatePicker", createDatePicker);
+        CommandCentral.addCommand("Calendar", createCalendar);
         CommandCentral.addCommand("Alert", createAlertBox);
         CommandCentral.addCommand("Slider", createSlider);
         CommandCentral.addCommand("ScrollBar", createScrollBar);
@@ -1027,6 +1031,30 @@ class CoreUIFrameworkPlugin
         return null;
     }
     
+    private static function createCalendar(data:Dynamic):Dynamic {
+        var existing = CoreCommandPlugin.findDisplayObject(data);
+        if (existing != null && Std.isOfType(existing, Calendar)) {
+            CoreCommandPlugin.setComponentData(data, cast(existing, IBaseUI));
+            return existing;
+        }
+        var calendar = new Calendar(data);
+        CoreCommandPlugin.displayUpdate(calendar, data);
+        CommandDispatch.attachEvent(calendar, Event.CHANGE);
+        return calendar;
+    }
+
+    private static function createDatePicker(data:Dynamic):Dynamic {
+        var existing = CoreCommandPlugin.findDisplayObject(data);
+        if (existing != null && Std.isOfType(existing, DatePicker)) {
+            CoreCommandPlugin.setComponentData(data, cast(existing, IBaseUI));
+            return existing;
+        }
+        var picker = new DatePicker(data);
+        CoreCommandPlugin.displayUpdate(picker, data);
+        CommandDispatch.attachEvent(picker, Event.CHANGE);
+        return picker;
+    }
+
     private static function createTextInput(data : Dynamic) : Dynamic
     {
         var displayObj : DisplayObject = CoreCommandPlugin.findDisplayObject(data);

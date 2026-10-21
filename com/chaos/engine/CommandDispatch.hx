@@ -129,6 +129,10 @@ class CommandDispatch
             if (tempItemPane.allowMultipleSelection)
                 Reflect.setField(eventData, "selectedItems", tempItemPane.getSelectedList());
         }
+        else if (Std.isOfType(event.currentTarget, com.chaos.ui.DatePicker))
+        {
+            Reflect.setField(eventData, "selectedDate", cast(event.currentTarget, com.chaos.ui.DatePicker).selectedDate);
+        }
         else if (Std.is(event.currentTarget, ITextInput))
         {
             Reflect.setField(eventData, "text", cast(event.currentTarget, ITextInput).text);

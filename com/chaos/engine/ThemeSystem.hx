@@ -70,6 +70,7 @@ class ThemeSystem
                 case "scrollpane": UIBitmapType.ScrollPane;
                 case "slider": UIBitmapType.Slider;
                 case "tabpane": UIBitmapType.TabPane;
+                case "datepicker": UIBitmapType.DatePicker;
                 case "textinput": UIBitmapType.TextInput;
                 case "togglebutton": UIBitmapType.ToggleButton;
                 case "tooltip": UIBitmapType.ToolTip;
